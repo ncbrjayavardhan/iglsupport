@@ -16,9 +16,10 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Reading & Invoice Progress Report</title>
     <style>
-        body {
+       /*  body {
             font-family: Arial, Helvetica, sans-serif;
             margin: 25px;
             background-color: #f4f6f9;
@@ -34,7 +35,46 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-        }
+        } */
+        body {
+		    margin: 10px;
+		    padding: 0;
+		    background-color: #f4f6f9;
+		}
+		.report-card {
+		    padding: 12px;
+		}
+		.report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        } 
+		.table-responsive {
+		    overflow-x: auto;
+		    -webkit-overflow-scrolling: touch; /* Smooth momentum scrolling on iOS/Android */
+		    margin-top: 10px;
+		    border: 1px solid #cbd5e1;
+		    border-radius: 4px;
+		}
+		.mobile-scroll-hint {
+		    display: none;
+		    font-size: 11px;
+		    color: #64748b;
+		    text-align: right;
+		    margin-bottom: 5px;
+		    font-style: italic;
+		}
+		@media (max-width: 768px) {
+		    .mobile-scroll-hint {
+		        display: block; /* Show hint on mobile devices */
+		    }
+		    .report-header {
+		        flex-direction: column;
+		        align-items: flex-start;
+		        gap: 10px;
+		    }
+		}
         h2 {
             margin: 0;
             color: #2c3e50;
@@ -262,7 +302,7 @@
 <body>
 
 <div class="report-card">
-    <div class="report-header">
+    <%-- <div class="report-header">
         <h2>Daily Progress &amp; Invoice Reconciliation Report</h2>
         <div>
             <a href="dashboard.jsp" class="btn btn-dash">Dashboard</a>
@@ -275,11 +315,40 @@
         <div class="legend-item"><span class="legend-box box-low"></span> &lt; 50.00% (Low)</div>
         <div class="legend-item"><span class="legend-box box-medium"></span> 50.00% - 75.00% (Medium)</div>
         <div class="legend-item"><span class="legend-box box-high"></span> &gt; 75.00% (High)</div>
+        
+        <div>
+            <a href="dashboard.jsp" class="btn btn-dash">Dashboard</a>
+            <a href="${pageContext.request.contextPath}/ReportServlet" class="btn btn-refresh">Refresh</a>
+        </div>
+    </div> --%>
+    <div class="report-header">
+        <h2>Daily Progress &amp; Invoice Reconciliation Report</h2>
+    </div>
+
+    <!-- Unified Container holding both Legends (left) and Buttons (right) -->
+    <div class="legend-container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; width: 100%; box-sizing: border-box;">
+        
+        <!-- Left Side: Legends -->
+        <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+            <span><strong>Billed % Ranges:</strong></span>
+            <div class="legend-item"><span class="legend-box box-low"></span> &lt; 50.00% (Low)</div>
+            <div class="legend-item"><span class="legend-box box-medium"></span> 50.00% - 85.00% (Medium)</div>
+            <div class="legend-item"><span class="legend-box box-high"></span> &gt; 85.00% (High)</div>
+        </div>
+
+        <!-- Right Side: Action Buttons -->
+        <div>
+            <a href="dashboard.jsp" class="btn btn-dash">Dashboard</a>
+            <a href="${pageContext.request.contextPath}/ReportServlet" class="btn btn-refresh">Refresh</a>
+        </div>
+        
     </div>
 
     <c:choose>
         <c:when test="${hasData}">
+            <div class="mobile-scroll-hint">&larr; Swipe horizontally to view all columns &rarr;</div>
             <div class="table-responsive">
+            
                 <table id="reportTable">
                     <thead>
                         <tr>
@@ -315,7 +384,7 @@
                                     </select>
                                 </div>
                             </th>
-                            <th>Total Data</th>
+                            <th>Total <br> Data</th>
                             <th>
                                 <div class="filter-header-cell">
                                     <span class="filter-label">Schedule</span>
@@ -324,14 +393,14 @@
                                     </select>
                                 </div>
                             </th>
-                            <th>Today Reading</th>
-                            <th>Today Inv</th>
-                            <th>Yesterday Reading</th>
-                            <th>Yesterday Inv</th>
-                            <th>Till Y'day Read</th>
-                            <th>Till Y'day Inv</th>
-                            <th>Total Reading</th>
-                            <th>Total Inv</th>
+                            <th>Today <br> Reading</th>
+                            <th>Today <br> Inv</th>
+                            <th>Yesterday <br> Reading</th>
+                            <th>Yesterday <br> Inv</th>
+                            <th>Till Y'day <br> Read</th>
+                            <th>Till Y'day <br> Inv</th>
+                            <th>Total <br> Reading</th>
+                            <th>Total <br> Inv</th>
                             <th>Unbilled</th>
                             <th>
                                 <div class="filter-header-cell">
@@ -343,11 +412,11 @@
                                             <div class="custom-option" onclick="selectBilledOption('LOW', '< 50%')">
                                                 <span class="legend-box box-low"></span> &lt; 50%
                                             </div>
-                                            <div class="custom-option" onclick="selectBilledOption('MEDIUM', '50% - 75%')">
-                                                <span class="legend-box box-medium"></span> 50% - 75%
+                                            <div class="custom-option" onclick="selectBilledOption('MEDIUM', '50% - 85%')">
+                                                <span class="legend-box box-medium"></span> 50% - 85%
                                             </div>
-                                            <div class="custom-option" onclick="selectBilledOption('HIGH', '> 75%')">
-                                                <span class="legend-box box-high"></span> &gt; 75%
+                                            <div class="custom-option" onclick="selectBilledOption('HIGH', '> 85%')">
+                                                <span class="legend-box box-high"></span> &gt; 85%
                                             </div>
                                         </div>
                                     </div>
@@ -363,8 +432,8 @@
                                     </select>
                                 </div>
                             </th>
-                            <th>PerDay Target</th>
-                            <th>Diff (Today - Target)</th>
+                            <th>PerDay <br> Target</th>
+                            <th>Diff <br>(Today - Target)</th>
                         </tr>
                     </thead>
                     <tbody id="reportTableBody">
@@ -426,7 +495,7 @@
                                 </td> --%>
                                 <td>
                                     <c:set var="bPct" value="${item.billedPercent}" />
-                                    <span class="pill-badge <c:choose><c:when test='${bPct < 50}'>badge-low</c:when><c:when test='${bPct >= 50 && bPct <= 75}'>badge-medium</c:when><c:otherwise>badge-high</c:otherwise></c:choose>">
+                                    <span class="pill-badge <c:choose><c:when test='${bPct < 50}'>badge-low</c:when><c:when test='${bPct >= 50 && bPct <= 85}'>badge-medium</c:when><c:otherwise>badge-high</c:otherwise></c:choose>">
                                         <fmt:formatNumber value="${bPct}" maxFractionDigits="2" minFractionDigits="2"/>%
                                     </span>
                                 </td>
@@ -834,9 +903,9 @@ function applyFilters() {
         if (selectedBilledFilter === "LOW") {
             matchBilled = (row.billedPct < 50.0);
         } else if (selectedBilledFilter === "MEDIUM") {
-            matchBilled = (row.billedPct >= 50.0 && row.billedPct <= 75.0);
+            matchBilled = (row.billedPct >= 50.0 && row.billedPct <= 85.0);
         } else if (selectedBilledFilter === "HIGH") {
-            matchBilled = (row.billedPct > 75.0);
+            matchBilled = (row.billedPct > 85.0);
         }
 
         if (matchState && matchCity && matchGa && matchPortion && matchSchedule && matchBilled && matchStatus) {
