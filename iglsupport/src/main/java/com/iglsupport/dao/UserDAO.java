@@ -11,14 +11,17 @@ public class UserDAO {
     public static class UserSessionInfo {
         private String role;
         private Integer gid;
+        private Integer vid;
 
-        public UserSessionInfo(String role, Integer gid) {
+        public UserSessionInfo(String role, Integer gid, Integer vid) {
             this.role = role;
             this.gid = gid;
+            this.vid = vid;
         }
 
         public String getRole() { return role; }
         public Integer getGid() { return gid; }
+        public Integer getVid() { return vid; }
     }
 
     public static boolean validateUser(String userId, String pwd) {
@@ -44,7 +47,7 @@ public class UserDAO {
     
     public static UserSessionInfo getUserInfo(String userId, String pwd) {
         UserSessionInfo userInfo = null;
-        String sql = "SELECT role, gid FROM `user` WHERE userId = ? AND pwd = ? AND status = 'Active'";
+        String sql = "SELECT role, gid, vid FROM `user` WHERE userId = ? AND pwd = ? AND status = 'Active'";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pst = conn.prepareStatement(sql)) {
@@ -57,7 +60,11 @@ public class UserDAO {
                     String role = rs.getString("role");
                     int gid = rs.getInt("gid");
                     Integer gidObj = rs.wasNull() ? null : gid;
-                    userInfo = new UserSessionInfo(role, gidObj);
+                    
+                    int vid = rs.getInt("vid");
+                    Integer vidObj = rs.wasNull() ? null : vid;
+
+                    userInfo = new UserSessionInfo(role, gidObj, vidObj);
                 }
             }
         } catch (SQLException e) {

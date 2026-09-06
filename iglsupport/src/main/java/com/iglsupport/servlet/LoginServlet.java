@@ -62,6 +62,7 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("currentUser", userId.trim());
             session.setAttribute("userRole", trimmedRole);
             session.setAttribute("userGid", userInfo.getGid());
+            session.setAttribute("userVid", userInfo.getVid());
             session.setMaxInactiveInterval(15 * 60);
             
             response.sendRedirect("dashboard.jsp");

@@ -28,14 +28,16 @@ public class ReportServlet extends HttpServlet {
 
         String userRole = (String) session.getAttribute("userRole");
         Integer userGid = (Integer) session.getAttribute("userGid");
+        Integer userVid = (Integer) session.getAttribute("userVid");
 
         List<ReportDTO> reportList;
         
-        // If Admin, or if Manager with gid == 0, treat like Admin (pass null to show all records with portion details)
-        if ("Admin".equalsIgnoreCase(userRole) || ("Manager".equalsIgnoreCase(userRole) && userGid != null && userGid == 0) || ("IGL".equalsIgnoreCase(userRole) && userGid != null && userGid == 0)) {
-            reportList = ReportDAO.getDailyReport(null);
+        // If Admin, or if Manager/IGL with gid == 0, treat like Admin (pass null GID but keep vendor restriction if needed, or pass null)
+        if ("Admin".equalsIgnoreCase(userRole) || 
+            (("Manager".equalsIgnoreCase(userRole) || "IGL".equalsIgnoreCase(userRole)) && userGid != null && userGid == 0)) {
+            reportList = ReportDAO.getDailyReport(null, userVid, userRole);
         } else {
-            reportList = ReportDAO.getDailyReport(userGid);
+            reportList = ReportDAO.getDailyReport(userGid, userVid, userRole);
         }
         
         if (reportList != null && !reportList.isEmpty()) {
