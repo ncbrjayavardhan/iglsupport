@@ -56,44 +56,46 @@
                     Home
                 </a>
 
-                <!-- Dropdown: HR -->
                 <!-- Dropdown: HR with Nested Flyout Dropdowns -->
-<div class="relative group inline-block mt-2 lg:mt-0 mr-6">
-    <button id="hr-dropdown-button-desktop" class="flex items-center text-white hover:text-indigo-100 py-1 px-2.5 rounded-md hover-nav-item transition duration-300 focus:outline-none">
-        HR <i class="fas fa-chevron-down ml-2 text-xs"></i>
-    </button>
+                <div class="relative group inline-block mt-2 lg:mt-0 mr-6">
+                    <button id="hr-dropdown-button-desktop" class="flex items-center text-white hover:text-indigo-100 py-1 px-2.5 rounded-md hover-nav-item transition duration-300 focus:outline-none">
+                        HR <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                    </button>
 
-    <ul id="hr-submenu-desktop" class="absolute hidden group-hover:block bg-dropdown text-white py-1 rounded-lg shadow-xl min-w-[210px] z-10 top-full left-0">
-        
-        <!-- 1. Transactions Nested Dropdown -->
-        <li class="relative group/sub">
-            <a href="javascript:void(0)" class="flex items-center justify-between px-4 py-2 bg-dropdown-hover transition duration-200 whitespace-nowrap text-sm">
-                <span>Transactions</span>
-                <i class="fas fa-chevron-right text-xs ml-3 text-gray-400"></i>
-            </a>
-            <ul class="absolute left-full top-0 hidden group-hover/sub:block bg-flyout text-white py-1 rounded-lg shadow-xl min-w-[180px] z-20">
-                <li><a href="${ctx}/upload.jsp" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">Upload Excel</a></li>
-                <li><a href="${ctx}/report" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">View Report</a></li>
-                <li><a href="${ctx}/bankReport" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">View Bank Detail</a></li>
-            </ul>
-        </li>
+                    <ul id="hr-submenu-desktop" class="absolute hidden group-hover:block bg-dropdown text-white py-1 rounded-lg shadow-xl min-w-[210px] z-10 top-full left-0">
+                        
+                        <!-- 1. Transactions Nested Dropdown -->
+                        <li class="relative group/sub">
+                            <a href="javascript:void(0)" class="flex items-center justify-between px-4 py-2 bg-dropdown-hover transition duration-200 whitespace-nowrap text-sm">
+                                <span>Transactions</span>
+                                <i class="fas fa-chevron-right text-xs ml-3 text-gray-400"></i>
+                            </a>
+                            <ul class="absolute left-full top-0 hidden group-hover/sub:block bg-flyout text-white py-1 rounded-lg shadow-xl min-w-[190px] z-20">
+                                <li><a href="${ctx}/upload.jsp" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">Upload Excel</a></li>
+                                <li><a href="${ctx}/addTransaction" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">Add Transaction</a></li>
+                                <li><a href="${ctx}/report" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">View Report</a></li>
+                                <li><a href="${ctx}/bankReport" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">View Bank Detail</a></li>
+                            </ul>
+                        </li>
 
-        <!-- 2. Pay Register Nested Dropdown -->
-        <li class="relative group/sub">
-            <a href="javascript:void(0)" class="flex items-center justify-between px-4 py-2 bg-dropdown-hover transition duration-200 whitespace-nowrap text-sm">
-                <span>Pay Register</span>
-                <i class="fas fa-chevron-right text-xs ml-3 text-gray-400"></i>
-            </a>
-            <ul class="absolute left-full top-0 hidden group-hover/sub:block bg-flyout text-white py-1 rounded-lg shadow-xl min-w-[200px] z-20">
-                <li><a href="${ctx}/payregister_upload.jsp" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">Upload Pay Register</a></li>
-                <li><a href="${ctx}/payment_status_update.jsp" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">Update Pay Status</a></li>
-                <li><a href="${ctx}/pay-register" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">View Pay Register</a></li>
-                <li><a href="${ctx}/employeeReport.jsp" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">Employee Master</a></li>
-            </ul>
-        </li>
+                        <!-- 2. Pay Register Nested Dropdown -->
+                        <li class="relative group/sub">
+                            <a href="javascript:void(0)" class="flex items-center justify-between px-4 py-2 bg-dropdown-hover transition duration-200 whitespace-nowrap text-sm">
+                                <span>Pay Register</span>
+                                <i class="fas fa-chevron-right text-xs ml-3 text-gray-400"></i>
+                            </a>
+                            <ul class="absolute left-full top-0 hidden group-hover/sub:block bg-flyout text-white py-1 rounded-lg shadow-xl min-w-[200px] z-20">
+                                <li><a href="${ctx}/payregister_upload.jsp" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">Upload Pay Register</a></li>
+                                <li><a href="${ctx}/payment_status_update.jsp" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">Update Pay Status</a></li>
+                                <li><a href="${ctx}/pay-register" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">View Pay Register</a></li>
+                                <li><a href="${ctx}/employeeReport.jsp" class="block px-4 py-2 bg-dropdown-hover transition duration-200 text-sm">Employee Master</a></li>
+                            </ul>
+                        </li>
 
-    </ul>
-</div>                <!-- Dropdown: Accounts (Nested Flyout Menus) -->
+                    </ul>
+                </div>
+
+                <!-- Dropdown: Accounts (Nested Flyout Menus) -->
                 <div class="relative group inline-block mt-2 lg:mt-0 mr-6">
                     <button id="accounts-dropdown-button-desktop" class="flex items-center text-white hover:text-indigo-100 py-1 px-2.5 rounded-md hover-nav-item transition duration-300 focus:outline-none">
                         Accounts <i class="fas fa-chevron-down ml-2 text-xs"></i>
@@ -101,7 +103,7 @@
 
                     <ul id="accounts-submenu-desktop" class="absolute hidden group-hover:block bg-dropdown text-white py-1 rounded-lg shadow-xl min-w-[210px] z-10 top-full left-0">
                         
-                        <!-- Upload Statement Submenu (relative group/sub) -->
+                        <!-- Upload Statement Submenu -->
                         <li class="relative group/sub">
                             <a href="#" class="flex items-center justify-between px-4 py-2 bg-dropdown-hover transition duration-200 whitespace-nowrap text-sm">
                                 <span>Upload Statement</span>
@@ -113,7 +115,7 @@
                             </ul>
                         </li>
 
-                        <!-- View Statement Submenu (relative group/sub) -->
+                        <!-- View Statement Submenu -->
                         <li class="relative group/sub">
                             <a href="#" class="flex items-center justify-between px-4 py-2 bg-dropdown-hover transition duration-200 whitespace-nowrap text-sm">
                                 <span>View Statement</span>
@@ -152,6 +154,7 @@
             <ul id="mobile-hr-submenu" class="hidden pl-2 py-1 bg-dropdown rounded-md">
                 <li class="font-bold text-indigo-300 px-4 py-1 text-xs uppercase tracking-wider">Transactions</li>
                 <li><a href="${ctx}/upload.jsp" class="block pl-6 pr-4 py-1.5 text-white bg-dropdown-hover rounded-md transition duration-300 text-sm">Upload Excel</a></li>
+                <li><a href="${ctx}/addTransaction" class="block pl-6 pr-4 py-1.5 text-white bg-dropdown-hover rounded-md transition duration-300 text-sm">Add Transaction</a></li>
                 <li><a href="${ctx}/report" class="block pl-6 pr-4 py-1.5 text-white bg-dropdown-hover rounded-md transition duration-300 text-sm">View Report</a></li>
                 <li><a href="${ctx}/bankReport" class="block pl-6 pr-4 py-1.5 text-white bg-dropdown-hover rounded-md transition duration-300 text-sm">View Bank Detail</a></li>
 

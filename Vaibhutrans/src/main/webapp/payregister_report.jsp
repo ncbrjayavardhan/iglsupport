@@ -110,6 +110,12 @@
             border-radius: 10px;
         }
 
+        .metric-card-status {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+        }
+
         .metric-card-2 {
             background: linear-gradient(135deg, rgb(237, 222, 251) 0%, rgb(245, 247, 246) 100%);
             border: 1px solid #a7f3d0;
@@ -340,9 +346,18 @@
             background: #eef2ff;
             color: #4338ca;
             font-family: monospace;
-            padding: 2px 5px;
-            border-radius: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
             font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.15s ease;
+        }
+        .code-badge:hover {
+            background: #e0e7ff;
+            color: #312e81;
+            text-decoration: underline;
         }
 
         /* Bulk Selection Banner */
@@ -389,7 +404,6 @@
             color: #ffffff;
         }
 
-        /* Enhanced Dropdown Menu */
         .action-dropdown-menu {
             border-radius: 10px;
             padding: 6px;
@@ -430,6 +444,45 @@
             from { opacity: 0; transform: translateY(-4px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Modal Colored Section Cards */
+        .modal-card-personal {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #bfdbfe !important;
+            border-radius: 10px;
+        }
+        .modal-card-billing {
+            background: linear-gradient(135deg, #fffbeb 0%, #fcd34d 100%);
+            border: 1px solid rgb(254, 251, 0) !important;
+            border-radius: 10px;
+        }
+        
+        /* Salary Card Dynamic Themes */
+        .modal-card-salary-paid {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1px solid #86efac !important;
+            border-radius: 10px;
+        }
+        .modal-card-salary-hold {
+            background: linear-gradient(135deg, #fdf6ed 0%, #faedcd 100%);
+            border: 1px solid #e9d8a6 !important;
+            border-radius: 10px;
+        }
+        .modal-card-salary-allow {
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            border: 1px solid #fca5a5 !important;
+            border-radius: 10px;
+        }
+
+        .modal-section-title {
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid rgba(0,0,0,0.08);
+        }
     </style>
 </head>
 <body>
@@ -448,7 +501,7 @@
                     </div>
                     <div>
                         <h4 class="report-title mb-0" style="font-size: 19px;">Pay Register Report</h4>
-                        <p class="text-muted small mb-0" style="font-size: 11px;">Filter by Cluster, Zone, Circle, Division, Designation, DB Status & Month/Year</p>
+                        <p class="text-muted small mb-0" style="font-size: 11px;">Filter by Month, Year, Cluster, Zone, Circle, Division, Designation & DB Status</p>
                     </div>
                 </div>
 
@@ -468,13 +521,18 @@
                 double sumNet = (summary != null && summary.get("SUM_NET_AMT_PAYABLE") != null) ? summary.get("SUM_NET_AMT_PAYABLE") : 0.0;
                 double sumTotalSalary = sumTcs + sumNet;
 
+                double sumAllow = (summary != null && summary.get("SUM_ALLOW_AMT") != null) ? summary.get("SUM_ALLOW_AMT") : 0.0;
+                double sumHold = (summary != null && summary.get("SUM_HOLD_AMT") != null) ? summary.get("SUM_HOLD_AMT") : 0.0;
+                double sumPaid = (summary != null && summary.get("SUM_PAID_AMT") != null) ? summary.get("SUM_PAID_AMT") : 0.0;
+                double sumAllowHold = sumAllow + sumHold;
+
                 double sumTotBilled = (summary != null && summary.get("SUM_TOTAL_BILLED_ACT") != null) ? summary.get("SUM_TOTAL_BILLED_ACT") : 0.0;
                 double sumManBilled = (summary != null && summary.get("SUM_MANNUAL_BILLED_ACT") != null) ? summary.get("SUM_MANNUAL_BILLED_ACT") : 0.0;
                 double sumProbeBilled = (summary != null && summary.get("SUM_PROBE_BILLED_ACT") != null) ? summary.get("SUM_PROBE_BILLED_ACT") : 0.0;
                 double sumAutoOcr = (summary != null && summary.get("SUM_AUTO_OCR_ACT") != null) ? summary.get("SUM_AUTO_OCR_ACT") : 0.0;
             %>
 
-            <!-- First Card: Currency Figures in Indian Number Format (₹ 94,82,226.00) -->
+            <!-- First Card: Currency Figures in Indian Number Format -->
             <div class="metric-card-1 p-2 mb-2">
                 <div class="row text-center g-1 align-items-center">
                     <div class="col border-end">
@@ -500,7 +558,29 @@
                 </div>
             </div>
 
-            <!-- Second Card: Quantity / Count Figures in Indian Number Format (94,82,226) -->
+            <!-- Middle Status Amount Card -->
+            <div class="metric-card-status p-2 mb-2">
+                <div class="row text-center g-1 align-items-center">
+                    <div class="col border-end">
+                        <div class="metric-label">Total Allow Amount</div>
+                        <div class="metric-val text-success">&#8377;<%= formatIndianNumber(sumAllow, 2) %></div>
+                    </div>
+                    <div class="col border-end">
+                        <div class="metric-label">Total Hold Amount</div>
+                        <div class="metric-val text-danger">&#8377;<%= formatIndianNumber(sumHold, 2) %></div>
+                    </div>
+                    <div class="col border-end">
+                        <div class="metric-label">Total Paid Amount</div>
+                        <div class="metric-val text-primary">&#8377;<%= formatIndianNumber(sumPaid, 2) %></div>
+                    </div>
+                    <div class="col">
+                        <div class="metric-label">Allow + Hold Total</div>
+                        <div class="metric-val text-dark">&#8377;<%= formatIndianNumber(sumAllowHold, 2) %></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Card: Quantity / Count Figures in Indian Number Format -->
             <div class="metric-card-2 p-2 mb-2">
                 <div class="row text-center g-1 align-items-center">
                     <div class="col-3 border-end">
@@ -522,7 +602,7 @@
                 </div>
             </div>
 
-            <!-- Single-Line Compact Filter Form with Multi-Select Checkboxes -->
+            <!-- Single-Line Compact Filter Form (Month & Year before Cluster) -->
             <%
                 String selCluster = request.getAttribute("selectedCluster") != null ? String.valueOf(request.getAttribute("selectedCluster")) : "";
                 List<String> selZones = (List<String>) request.getAttribute("selectedZones");
@@ -544,10 +624,36 @@
                 <form id="filterForm" action="pay-register" method="get">
                     <div class="filter-row-nowrap">
                         
-                        <!-- 1) Cluster -->
+                        <!-- 1) Month -->
+                        <div class="filter-item-month">
+                            <select name="month" id="filterMonth" class="form-select form-select-sm fw-semibold w-100">
+                                <option value="">Month</option>
+                                <%
+                                    String[] months = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
+                                    for (String m : months) {
+                                %>
+                                    <option value="<%=m%>" <%= m.equalsIgnoreCase(selMonth) ? "selected" : "" %>><%=m%></option>
+                                <% } %>
+                            </select>
+                        </div>
+
+                        <!-- 2) Year -->
+                        <div class="filter-item-year">
+                            <select name="year" id="filterYear" class="form-select form-select-sm fw-semibold w-100">
+                                <option value="">Year</option>
+                                <%
+                                    int currYear = java.time.Year.now().getValue();
+                                    for (int y = currYear; y >= currYear - 5; y--) {
+                                %>
+                                    <option value="<%=y%>" <%= String.valueOf(y).equals(selYear) ? "selected" : "" %>><%=y%></option>
+                                <% } %>
+                            </select>
+                        </div>
+
+                        <!-- 3) Cluster -->
                         <div class="filter-item-cluster">
-                            <select name="cluster" id="filterCluster" class="form-select form-select-sm fw-semibold w-100" onchange="onClusterFilterChange(this)">
-                                <option value="" <%= "".equals(selCluster) ? "selected" : "" %>>1. All Clusters</option>
+                            <select name="cluster" id="filterCluster" class="form-select form-select-sm fw-semibold w-100">
+                                <option value="" <%= "".equals(selCluster) ? "selected" : "" %>>3. All Clusters</option>
                                 <option value="8" <%= "8".equals(selCluster) ? "selected" : "" %>>Cluster-8</option>
                                 <option value="9" <%= "9".equals(selCluster) ? "selected" : "" %>>Cluster-9</option>
                                 <option value="12" <%= "12".equals(selCluster) ? "selected" : "" %>>Cluster-12</option>
@@ -555,11 +661,11 @@
                             </select>
                         </div>
 
-                        <!-- 2) Zone -->
+                        <!-- 4) Zone -->
                         <div class="filter-item-multi">
                             <div class="dropdown">
                                 <button class="multiselect-btn dropdown-toggle" type="button" id="zoneDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span id="zoneBtnLabel">2. All Zones</span>
+                                    <span id="zoneBtnLabel">4. All Zones</span>
                                 </button>
                                 <div class="dropdown-menu custom-multiselect-dropdown shadow" aria-labelledby="zoneDropdownBtn" onclick="event.stopPropagation()">
                                     <div class="multiselect-actions">
@@ -585,11 +691,11 @@
                             </div>
                         </div>
 
-                        <!-- 3) Circle -->
+                        <!-- 5) Circle -->
                         <div class="filter-item-multi">
                             <div class="dropdown">
                                 <button class="multiselect-btn dropdown-toggle" type="button" id="circleDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span id="circleBtnLabel">3. All Circles</span>
+                                    <span id="circleBtnLabel">5. All Circles</span>
                                 </button>
                                 <div class="dropdown-menu custom-multiselect-dropdown shadow" aria-labelledby="circleDropdownBtn" onclick="event.stopPropagation()">
                                     <div class="multiselect-actions">
@@ -615,11 +721,11 @@
                             </div>
                         </div>
 
-                        <!-- 4) Division -->
+                        <!-- 6) Division -->
                         <div class="filter-item-multi">
                             <div class="dropdown">
                                 <button class="multiselect-btn dropdown-toggle" type="button" id="divisionDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span id="divisionBtnLabel">4. All Divisions</span>
+                                    <span id="divisionBtnLabel">6. All Divisions</span>
                                 </button>
                                 <div class="dropdown-menu custom-multiselect-dropdown shadow" aria-labelledby="divisionDropdownBtn" onclick="event.stopPropagation()">
                                     <div class="multiselect-actions">
@@ -645,11 +751,11 @@
                             </div>
                         </div>
 
-                        <!-- 5) Designation -->
+                        <!-- 7) Designation -->
                         <div class="filter-item-multi">
                             <div class="dropdown">
                                 <button class="multiselect-btn dropdown-toggle" type="button" id="designationDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span id="designationBtnLabel">5. All Designations</span>
+                                    <span id="designationBtnLabel">7. All Designations</span>
                                 </button>
                                 <div class="dropdown-menu custom-multiselect-dropdown shadow" aria-labelledby="designationDropdownBtn" onclick="event.stopPropagation()">
                                     <div class="multiselect-actions">
@@ -675,11 +781,11 @@
                             </div>
                         </div>
 
-                        <!-- 6) DB Status Dropdown -->
+                        <!-- 8) DB Status Dropdown -->
                         <div class="filter-item-multi">
                             <div class="dropdown">
                                 <button class="multiselect-btn dropdown-toggle" type="button" id="dbStatusDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span id="dbStatusBtnLabel">6. All DB Status</span>
+                                    <span id="dbStatusBtnLabel">8. All DB Status</span>
                                 </button>
                                 <div class="dropdown-menu custom-multiselect-dropdown shadow" aria-labelledby="dbStatusDropdownBtn" onclick="event.stopPropagation()">
                                     <div class="multiselect-actions">
@@ -703,32 +809,6 @@
                                     <% } %>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- 7) Month -->
-                        <div class="filter-item-month">
-                            <select name="month" id="filterMonth" class="form-select form-select-sm fw-semibold w-100">
-                                <option value="">Month</option>
-                                <%
-                                    String[] months = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
-                                    for (String m : months) {
-                                %>
-                                    <option value="<%=m%>" <%= m.equalsIgnoreCase(selMonth) ? "selected" : "" %>><%=m%></option>
-                                <% } %>
-                            </select>
-                        </div>
-
-                        <!-- 8) Year -->
-                        <div class="filter-item-year">
-                            <select name="year" id="filterYear" class="form-select form-select-sm fw-semibold w-100">
-                                <option value="">Year</option>
-                                <%
-                                    int currYear = java.time.Year.now().getValue();
-                                    for (int y = currYear; y >= currYear - 5; y--) {
-                                %>
-                                    <option value="<%=y%>" <%= String.valueOf(y).equals(selYear) ? "selected" : "" %>><%=y%></option>
-                                <% } %>
-                            </select>
                         </div>
 
                         <!-- Filter & Reset Buttons -->
@@ -815,7 +895,7 @@
                 </div>
             </div>
 
-            <!-- Main Data Table: Explicit Target Columns with DB_STATUS Placed Next to Action -->
+            <!-- Main Data Table with Code Hyperlinks & Initial Load Guard -->
             <%
                 List<Map<String, Object>> records = (List<Map<String, Object>>) request.getAttribute("records");
                 
@@ -868,110 +948,145 @@
                     {"PAY_YEAR", "pay year"}
                 };
             %>
-            <div class="table-responsive">
-                <table id="payRegisterTable" class="table table-bordered-custom table-hover align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;" class="text-center">
-                                <input type="checkbox" id="selectAllRows" class="form-check-input" onchange="toggleSelectAllRows(this)" title="Select all on current page">
-                            </th>
-                            <th style="width: 80px;" class="text-center">Action</th>
-                            <% for (String[] col : displayColumns) { %>
-                                <th data-col-name="<%= col[0] %>"><%= col[1] %></th>
-                            <% } %>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <%
-                            if (records != null && !records.isEmpty()) {
-                                for (Map<String, Object> record : records) {
-                                    String dbStatus = (record.get("DB_STATUS") != null) ? record.get("DB_STATUS").toString().trim() : "";
-                                    String empCodeVal = (record.get("CODE") != null) ? record.get("CODE").toString().trim() : "";
-                        %>
-                            <tr data-db-status="<%= dbStatus %>" data-emp-code="<%= empCodeVal %>">
-                                <td class="text-center">
-                                    <input type="checkbox" class="form-check-input row-select-chk" value="<%= empCodeVal %>" onchange="onRowCheckboxChanged(this)">
-                                </td>
-                                <!-- Per-Row Action Dropdown -->
-                                <td class="text-center">
-                                    <div class="dropdown">
-                                        <button class="btn btn-action-pill dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                            <i class="fa fa-sliders me-1"></i> Action
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu shadow-lg border-0">
-                                            <li>
-                                                <a class="dropdown-item action-item-allow" href="javascript:void(0)" onclick="updateRecordStatus('<%= empCodeVal %>', 'Allow', this)">
-                                                    <span class="icon-circle bg-success-subtle text-success"><i class="fa fa-check"></i></span>
-                                                    <span class="fw-semibold">Allow</span>
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item action-item-hold" href="javascript:void(0)" onclick="updateRecordStatus('<%= empCodeVal %>', 'Hold', this)">
-                                                    <span class="icon-circle bg-danger-subtle text-danger"><i class="fa fa-pause"></i></span>
-                                                    <span class="fw-semibold">Hold</span>
-                                                </a>
-                                            </li>
-                                            <li><hr class="dropdown-divider my-1"></li>
-                                            <li>
-                                                <a class="dropdown-item action-item-paid" href="javascript:void(0)" onclick="updateRecordStatus('<%= empCodeVal %>', 'Paid', this)">
-                                                    <span class="icon-circle bg-primary-subtle text-primary"><i class="fa-solid fa-indian-rupee-sign"></i></span>
-                                                    <span class="fw-semibold">Mark Paid</span>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </td>
+            <c:choose>
+                <c:when test="${not empty records}">
+                    <div class="table-responsive">
+                        <table id="payRegisterTable" class="table table-bordered-custom table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;" class="text-center">
+                                        <input type="checkbox" id="selectAllRows" class="form-check-input" onchange="toggleSelectAllRows(this)" title="Select all on current page">
+                                    </th>
+                                    <th style="width: 80px;" class="text-center">Action</th>
+                                    <% for (String[] col : displayColumns) { %>
+                                        <th data-col-name="<%= col[0] %>"><%= col[1] %></th>
+                                    <% } %>
+                                </tr>
+                            </thead>
+                            <tbody>
                                 <%
-                                    for (String[] col : displayColumns) {
-                                        String colKey = col[0];
-                                        Object val = record.get(colKey);
-                                        String strVal = (val != null) ? val.toString() : "";
-                                        boolean isCode = "CODE".equalsIgnoreCase(colKey);
-                                        boolean isStatus = "DB_STATUS".equalsIgnoreCase(colKey);
+                                    for (Map<String, Object> record : records) {
+                                        String dbStatus = (record.get("DB_STATUS") != null) ? record.get("DB_STATUS").toString().trim() : "";
+                                        String empCodeVal = (record.get("CODE") != null) ? record.get("CODE").toString().trim() : "";
                                 %>
-                                    <td>
-                                        <% if (isCode) { %>
-                                            <span class="code-badge"><%= strVal %></span>
-                                        <% } else if (isStatus) { 
-                                            String badgeClass = "status-badge-other";
-                                            if ("allow".equalsIgnoreCase(strVal)) badgeClass = "status-badge-allow";
-                                            else if ("left".equalsIgnoreCase(strVal) || "hold".equalsIgnoreCase(strVal)) badgeClass = "status-badge-hold";
-                                            else if ("paid".equalsIgnoreCase(strVal)) badgeClass = "status-badge-paid";
+                                    <tr class="data-row"
+                                        data-db-status="<%= dbStatus %>" 
+                                        data-emp-code="<%= empCodeVal %>"
+                                        data-emp-name="<%= record.get("EMP_NAME") != null ? record.get("EMP_NAME").toString() : "" %>"
+                                        data-doj="<%= record.get("DOJ") != null ? record.get("DOJ").toString() : "" %>"
+                                        data-uan="<%= record.get("UAN") != null ? record.get("UAN").toString() : "" %>"
+                                        data-esi="<%= record.get("ESI_NO") != null ? record.get("ESI_NO").toString() : "" %>"
+                                        data-branch="<%= record.get("BRANCH") != null ? record.get("BRANCH").toString() : "" %>"
+                                        data-category="<%= record.get("CATEGORY") != null ? record.get("CATEGORY").toString() : "" %>"
+                                        data-designation="<%= record.get("DESIGNATION") != null ? record.get("DESIGNATION").toString() : "" %>"
+                                        data-department="<%= record.get("DEPARTMENT") != null ? record.get("DEPARTMENT").toString() : "" %>"
+                                        data-mobile="<%= record.get("MOBILE") != null ? record.get("MOBILE").toString() : "" %>"
+                                        data-ifsc="<%= record.get("IFSC") != null ? record.get("IFSC").toString() : "" %>"
+                                        data-account="<%= record.get("ACCOUNT_NO") != null ? record.get("ACCOUNT_NO").toString() : "" %>"
+                                        data-total-billed="<%= record.get("TOTAL_BILLED_ACT") != null ? record.get("TOTAL_BILLED_ACT").toString() : "0" %>"
+                                        data-manual-billed="<%= record.get("MANNUAL_BILLED_ACT") != null ? record.get("MANNUAL_BILLED_ACT").toString() : "0" %>"
+                                        data-probe-billed="<%= record.get("PROBE_BILLED_ACT") != null ? record.get("PROBE_BILLED_ACT").toString() : "0" %>"
+                                        data-auto-ocr="<%= record.get("AUTO_OCR_ACT") != null ? record.get("AUTO_OCR_ACT").toString() : "0" %>"
+                                        data-ctc1="<%= record.get("CTC1_ACT") != null ? record.get("CTC1_ACT").toString() : "0" %>"
+                                        data-total-tcs="<%= record.get("TOTAL_TCS_ACT") != null ? record.get("TOTAL_TCS_ACT").toString() : "0" %>"
+                                        data-ctc="<%= record.get("CTC_ACT") != null ? record.get("CTC_ACT").toString() : "0" %>"
+                                        data-gross-earning="<%= record.get("GROSS_EARNING") != null ? record.get("GROSS_EARNING").toString() : "0" %>"
+                                        data-pf="<%= record.get("PF") != null ? record.get("PF").toString() : "0" %>"
+                                        data-esi-amt="<%= record.get("ESI") != null ? record.get("ESI").toString() : "0" %>"
+                                        data-pt="<%= record.get("PROFESSIONAL_TAX") != null ? record.get("PROFESSIONAL_TAX").toString() : "0" %>"
+                                        data-gross-deduction="<%= record.get("GROSS_DEDUCTION") != null ? record.get("GROSS_DEDUCTION").toString() : "0" %>"
+                                        data-net-payable="<%= record.get("NET_AMT_PAYABLE") != null ? record.get("NET_AMT_PAYABLE").toString() : "0" %>"
+                                        data-pension="<%= record.get("PENSION_CONT") != null ? record.get("PENSION_CONT").toString() : "0" %>"
+                                        data-epf-diff="<%= record.get("EPF_DIFF") != null ? record.get("EPF_DIFF").toString() : "0" %>"
+                                        data-emp-pf-cont="<%= record.get("EMPLOYER_PF_CONT") != null ? record.get("EMPLOYER_PF_CONT").toString() : "0" %>"
+                                        data-emp-esi-cont="<%= record.get("EMPLOYER_ESI_CONT") != null ? record.get("EMPLOYER_ESI_CONT").toString() : "0" %>"
+                                        data-pf-edli="<%= record.get("PF_EDLI_CHARGES") != null ? record.get("PF_EDLI_CHARGES").toString() : "0" %>"
+                                        data-total-ctc-salary="<%= record.get("TOTAL_CTC_SALARY") != null ? record.get("TOTAL_CTC_SALARY").toString() : "0" %>"
+                                        data-pay-month="<%= record.get("PAY_MONTH") != null ? record.get("PAY_MONTH").toString() : "" %>"
+                                        data-pay-year="<%= record.get("PAY_YEAR") != null ? record.get("PAY_YEAR").toString() : "" %>">
+
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input row-select-chk" value="<%= empCodeVal %>" onchange="onRowCheckboxChanged(this)">
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="dropdown">
+                                                <button class="btn btn-action-pill dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="fa fa-sliders me-1"></i> Action
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end action-dropdown-menu shadow-lg border-0">
+                                                    <li>
+                                                        <a class="dropdown-item action-item-allow" href="javascript:void(0)" onclick="updateRecordStatus('<%= empCodeVal %>', 'Allow', this)">
+                                                            <span class="icon-circle bg-success-subtle text-success"><i class="fa fa-check"></i></span>
+                                                            <span class="fw-semibold">Allow</span>
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item action-item-hold" href="javascript:void(0)" onclick="updateRecordStatus('<%= empCodeVal %>', 'Hold', this)">
+                                                            <span class="icon-circle bg-danger-subtle text-danger"><i class="fa fa-pause"></i></span>
+                                                            <span class="fw-semibold">Hold</span>
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider my-1"></li>
+                                                    <li>
+                                                        <a class="dropdown-item action-item-paid" href="javascript:void(0)" onclick="updateRecordStatus('<%= empCodeVal %>', 'Paid', this)">
+                                                            <span class="icon-circle bg-primary-subtle text-primary"><i class="fa-solid fa-indian-rupee-sign"></i></span>
+                                                            <span class="fw-semibold">Mark Paid</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                        <%
+                                            for (String[] col : displayColumns) {
+                                                String colKey = col[0];
+                                                Object val = record.get(colKey);
+                                                String strVal = (val != null) ? val.toString() : "";
+                                                boolean isCode = "CODE".equalsIgnoreCase(colKey);
+                                                boolean isStatus = "DB_STATUS".equalsIgnoreCase(colKey);
                                         %>
-                                            <span class="status-badge <%= badgeClass %>"><%= strVal.isEmpty() ? "-" : strVal %></span>
-                                        <% } else { %>
-                                            <%= strVal %>
+                                            <td>
+                                                <% if (isCode) { %>
+                                                    <a href="javascript:void(0);" class="code-badge text-decoration-none" onclick="openEmployeeDetailsModal(this)" title="Click to view full employee details">
+                                                        <i class="fa fa-user-circle me-1 text-primary"></i><%= strVal %>
+                                                    </a>
+                                                <% } else if (isStatus) { 
+                                                    String badgeClass = "status-badge-other";
+                                                    if ("allow".equalsIgnoreCase(strVal)) badgeClass = "status-badge-allow";
+                                                    else if ("left".equalsIgnoreCase(strVal) || "hold".equalsIgnoreCase(strVal)) badgeClass = "status-badge-hold";
+                                                    else if ("paid".equalsIgnoreCase(strVal)) badgeClass = "status-badge-paid";
+                                                %>
+                                                    <span class="status-badge <%= badgeClass %>"><%= strVal.isEmpty() ? "-" : strVal %></span>
+                                                <% } else { %>
+                                                    <%= strVal %>
+                                                <% } %>
+                                            </td>
                                         <% } %>
-                                    </td>
+                                    </tr>
                                 <% } %>
-                            </tr>
-                        <%
-                                }
-                            } else {
-                        %>
-                            <tr>
-                                <td colspan="<%= displayColumns.length + 2 %>" class="text-center py-5 text-muted">
-                                    <i class="fa fa-folder-open fa-3x mb-3 text-secondary opacity-50 d-block"></i>
-                                    No records found for the selected filters.
-                                </td>
-                            </tr>
-                        <% } %>
-                    </tbody>
-                </table>
-            </div>
+                            </tbody>
+                        </table>
+                    </div>
 
-            <!-- Pagination Section -->
-            <div id="paginationControls" class="pagination-container d-flex flex-wrap align-items-center justify-content-between gap-3">
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-light btn-sm" onclick="prevPage()"><i class="fa fa-chevron-left"></i> Prev</button>
-                    <span id="pageInfo" class="badge bg-white text-dark border px-3 py-1" style="font-size: 11px;">Page 1 of 1</span>
-                    <button class="btn btn-light btn-sm" onclick="nextPage()">Next <i class="fa fa-chevron-right"></i></button>
-                </div>
-
-                <div>
-                    <span id="totalBadge" class="badge-total">Total Records: <%= records != null ? records.size() : 0 %></span>
-                </div>
-            </div>
+                    <!-- Pagination Section -->
+                    <div id="paginationControls" class="pagination-container d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-light btn-sm" onclick="prevPage()"><i class="fa fa-chevron-left"></i> Prev</button>
+                            <span id="pageInfo" class="badge bg-white text-dark border px-3 py-1" style="font-size: 11px;">Page 1 of 1</span>
+                            <button class="btn btn-light btn-sm" onclick="nextPage()">Next <i class="fa fa-chevron-right"></i></button>
+                        </div>
+                        <div>
+                            <span id="totalBadge" class="badge-total">Total Records: <%= records != null ? records.size() : 0 %></span>
+                        </div>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="text-center py-5 my-3 bg-white rounded-3 border">
+                        <i class="fa fa-filter fa-3x text-primary opacity-50 mb-3"></i>
+                        <h5 class="fw-bold text-dark">Please Select Filters to View Report</h5>
+                        <p class="text-muted small mb-0">Use the filter panel above to select Month, Year, Cluster, and criteria, then click <strong>Filter</strong>.</p>
+                    </div>
+                </c:otherwise>
+            </c:choose>
 
         </div>
     </div>
@@ -991,7 +1106,6 @@
                         Paste Employee Codes (separated by newlines, commas, tabs, or spaces):
                     </label>
                     <textarea id="bulkEmployeeCodesInput" class="form-control font-monospace" rows="7" placeholder="EMP001&#10;EMP002, EMP003&#10;EMP004	EMP005" style="font-size: 12px;"></textarea>
-                    
                     <div id="bulkPasteFeedback" class="small mt-2" style="font-size: 11px; display: none;"></div>
                 </div>
                 <div class="modal-footer py-2 px-3 border-top">
@@ -999,6 +1113,52 @@
                     <button type="button" class="btn btn-gradient-primary btn-sm px-3" onclick="applyBulkPastedCodes()">
                         <i class="fa fa-check me-1"></i> Apply Selection
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Detailed View Modal with Distinct Status Header & Colors -->
+    <div class="modal fade" id="employeeDetailsModal" tabindex="-1" aria-labelledby="employeeDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg border-0" style="border-radius: 14px;">
+                <div class="modal-header py-3 px-4 bg-dark text-white" style="border-top-left-radius: 14px; border-top-right-radius: 14px;">
+                    <h5 class="modal-title fw-bold" id="employeeDetailsModalLabel" style="font-size: 16px;">
+                        <i class="fa fa-id-card text-info me-2"></i> Employee Detailed Profile &mdash; <span id="modalMonthYearHeader" class="text-warning"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <div class="row g-3">
+                        
+                        <!-- 1) Personal Details Card (Blue Theme) -->
+                        <div class="col-lg-4">
+                            <div class="p-3 modal-card-personal h-100 shadow-sm">
+                                <div class="modal-section-title text-primary"><i class="fa fa-user me-2"></i>Personal Details</div>
+                                <div class="d-flex flex-column gap-2" id="personalContainer"></div>
+                            </div>
+                        </div>
+
+                        <!-- 2) Billing Details Card (Green Theme) -->
+                        <div class="col-lg-4">
+                            <div class="p-3 modal-card-billing h-100 shadow-sm">
+                                <div class="modal-section-title text-success"><i class="fa fa-file-invoice-dollar me-2"></i>Billing Details</div>
+                                <div class="d-flex flex-column gap-2" id="billingContainer"></div>
+                            </div>
+                        </div>
+
+                        <!-- 3) Salary Details Card (Dynamic Color Theme based on db_status) -->
+                        <div class="col-lg-4">
+                            <div class="p-3 h-100 shadow-sm" id="salaryCardWrapper">
+                                <div class="modal-section-title" id="salaryTitleContainer"><i class="fa fa-wallet me-2"></i><span id="salaryTitleText">Salary Details</span></div>
+                                <div class="d-flex flex-column gap-2" id="salaryContainer"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer py-2 px-4 border-top bg-white" style="border-bottom-left-radius: 14px; border-bottom-right-radius: 14px;">
+                    <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -1025,8 +1185,128 @@
             }
         %>
 
-        function onClusterFilterChange(selectElem) {
-            selectElem.form.submit();
+        function openEmployeeDetailsModal(linkElem) {
+            var row = linkElem.closest('tr');
+            if (!row) return;
+
+            var m = row.getAttribute('data-pay-month') || selectedMonth || '';
+            var y = row.getAttribute('data-pay-year') || selectedYear || '';
+            var monthYearStr = (m && y) ? (m + ' / ' + y) : (m || y || 'Selected Period');
+            document.getElementById('modalMonthYearHeader').textContent = '[' + monthYearStr + ']';
+
+            var dbStatus = (row.getAttribute('data-db-status') || '').trim().toUpperCase();
+            if (!dbStatus) dbStatus = 'UNKNOWN';
+
+            var salaryCardWrapper = document.getElementById('salaryCardWrapper');
+            var salaryTitleText = document.getElementById('salaryTitleText');
+            var salaryTitleContainer = document.getElementById('salaryTitleContainer');
+
+            salaryTitleText.textContent = 'Salary Details (' + dbStatus + ')';
+
+            if (dbStatus === 'PAID') {
+                salaryCardWrapper.className = 'p-3 modal-card-salary-paid h-100 shadow-sm';
+                salaryTitleContainer.className = 'modal-section-title text-success';
+            } else if (dbStatus === 'ALLOW') {
+                salaryCardWrapper.className = 'p-3 modal-card-salary-allow h-100 shadow-sm';
+                salaryTitleContainer.className = 'modal-section-title text-danger'; // Red theme for Allow
+            } else if (dbStatus === 'HOLD') {
+                salaryCardWrapper.className = 'p-3 modal-card-salary-hold h-100 shadow-sm';
+                salaryTitleContainer.className = 'modal-section-title';
+                salaryTitleContainer.style.color = '#854d0e'; // Brown theme for Hold
+            } else {
+                salaryCardWrapper.className = 'p-3 modal-card-salary-hold h-100 shadow-sm';
+                salaryTitleContainer.className = 'modal-section-title text-secondary';
+            }
+
+            var personalFields = [
+                { label: 'Code', val: row.getAttribute('data-emp-code') },
+                { label: 'Name', val: row.getAttribute('data-emp-name') },
+                { label: 'DOJ', val: row.getAttribute('data-doj') },
+                { label: 'UAN', val: row.getAttribute('data-uan') },
+                { label: 'ESI No', val: row.getAttribute('data-esi') },
+                { label: 'Branch', val: row.getAttribute('data-branch') },
+                { label: 'Category', val: row.getAttribute('data-category') },
+                { label: 'Designation', val: row.getAttribute('data-designation') },
+                { label: 'Department', val: row.getAttribute('data-department') },
+                { label: 'Mobile', val: row.getAttribute('data-mobile') },
+                { label: 'IFSC', val: row.getAttribute('data-ifsc') },
+                { label: 'A/c No', val: row.getAttribute('data-account') }
+            ];
+
+            var billingFields = [
+                { label: 'Total Billed [Actual]', val: row.getAttribute('data-total-billed') },
+                { label: 'Manual Billed [Actual]', val: row.getAttribute('data-manual-billed') },
+                { label: 'Probe Billed [Actual]', val: row.getAttribute('data-probe-billed') },
+                { label: 'Auto OCR [Actual]', val: row.getAttribute('data-auto-ocr') }
+            ];
+
+            var salaryFields = [
+                { label: 'CTC-1 [Actual]', val: row.getAttribute('data-ctc1') },
+                { label: 'Total TCS [Actual]', val: row.getAttribute('data-total-tcs') },
+                { label: 'CTC [Actual]', val: row.getAttribute('data-ctc') },
+                { label: 'Gross Earning', val: row.getAttribute('data-gross-earning') },
+                { label: 'PF', val: row.getAttribute('data-pf') },
+                { label: 'ESI', val: row.getAttribute('data-esi-amt') },
+                { label: 'Professional Tax', val: row.getAttribute('data-pt') },
+                { label: 'Gross Deduction', val: row.getAttribute('data-gross-deduction') },
+                { label: 'Net Amt Payable', val: row.getAttribute('data-net-payable') },
+                { label: 'Pension Cont.', val: row.getAttribute('data-pension') },
+                { label: 'EPF Diff.', val: row.getAttribute('data-epf-diff') },
+                { label: 'Total Employer\'s PF Cont.', val: row.getAttribute('data-emp-pf-cont') },
+                { label: 'Employer\'s ESI Cont.', val: row.getAttribute('data-emp-esi-cont') },
+                { label: 'PF EDLI Charges', val: row.getAttribute('data-pf-edli') },
+                { label: 'Total CTC Salary', val: row.getAttribute('data-total-ctc-salary') }
+            ];
+
+            function populateSection(containerId, fields, isSalaryCard) {
+                var container = document.getElementById(containerId);
+                container.innerHTML = '';
+                fields.forEach(function(item) {
+                    var box = document.createElement('div');
+                    box.className = 'p-2 bg-white border rounded shadow-xs d-flex justify-content-between align-items-center';
+
+                    var labelSpan = document.createElement('span');
+                    labelSpan.className = 'fw-bold small';
+                    labelSpan.style.fontSize = '11px';
+                    
+                    var valSpan = document.createElement('span');
+                    valSpan.className = 'fw-bold small';
+                    valSpan.style.fontSize = '11.5px';
+
+                    if (isSalaryCard) {
+                        if (dbStatus === 'PAID') {
+                            labelSpan.style.color = '#15803d';
+                            valSpan.style.color = '#16a34a';
+                        } else if (dbStatus === 'ALLOW') {
+                            labelSpan.style.color = '#991b1b'; // Red label for Allow
+                            valSpan.style.color = '#b91c1c';   // Red value for Allow
+                        } else if (dbStatus === 'HOLD') {
+                            labelSpan.style.color = '#854d0e'; // Brown label for Hold
+                            valSpan.style.color = '#713f12';   // Brown value for Hold
+                        } else {
+                            labelSpan.className += ' text-muted';
+                            valSpan.className += ' text-dark';
+                        }
+                    } else {
+                        labelSpan.className += ' text-muted';
+                        valSpan.className += ' text-dark';
+                    }
+
+                    labelSpan.textContent = item.label;
+                    valSpan.textContent = (item.val && item.val !== 'null' && item.val !== '') ? item.val : '-';
+
+                    box.appendChild(labelSpan);
+                    box.appendChild(valSpan);
+                    container.appendChild(box);
+                });
+            }
+
+            populateSection('personalContainer', personalFields, false);
+            populateSection('billingContainer', billingFields, false);
+            populateSection('salaryContainer', salaryFields, true);
+
+            var modal = new bootstrap.Modal(document.getElementById('employeeDetailsModal'));
+            modal.show();
         }
 
         function toggleSelectAll(className, selectAll, type) {
@@ -1046,11 +1326,11 @@
             var labelSpan = document.getElementById(type + 'BtnLabel');
             if (!labelSpan) return;
 
-            var defaultPrefix = type === 'zone' ? '2. All Zones' 
-                              : (type === 'circle' ? '3. All Circles' 
-                              : (type === 'division' ? '4. All Divisions' 
-                              : (type === 'designation' ? '5. All Designations' 
-                              : '6. All DB Status')));
+            var defaultPrefix = type === 'zone' ? '4. All Zones' 
+                              : (type === 'circle' ? '5. All Circles' 
+                              : (type === 'division' ? '6. All Divisions' 
+                              : (type === 'designation' ? '7. All Designations' 
+                              : '8. All DB Status')));
             var pluralName = type === 'zone' ? 'Zones' 
                            : (type === 'circle' ? 'Circles' 
                            : (type === 'division' ? 'Divisions' 
@@ -1194,7 +1474,6 @@
             return accountSelect.value.trim();
         }
 
-        /* --- AJAX Single Record Status Update Handler --- */
         function updateRecordStatus(empCode, newStatus, triggerElem) {
             if (!empCode) return;
 
@@ -1262,7 +1541,6 @@
             });
         }
 
-        /* --- Bulk Pasted Employee Codes Selection & Isolated Display Logic --- */
         var selectedEmployeeCodesSet = new Set();
 
         function applyBulkPastedCodes() {
@@ -1420,15 +1698,12 @@
             filterTableRows();
         }
 
-        /* Combined Filter Engine: Handles search query & active selection filtering */
         function filterTableRows() {
             var query = (document.getElementById('tableSearch') ? document.getElementById('tableSearch').value : '').toLowerCase().trim();
             var table = document.getElementById('payRegisterTable');
             if (!table || !table.tBodies || !table.tBodies[0]) return;
 
             var rows = table.tBodies[0].rows;
-            if (rows.length === 1 && rows[0].cells.length === 1) return;
-
             var hasActiveSelection = selectedEmployeeCodesSet.size > 0;
 
             for (var i = 0; i < rows.length; i++) {
@@ -1454,7 +1729,6 @@
         function getSelectedOrVisibleRows() {
             var allRows = Array.from(document.querySelectorAll('#payRegisterTable tbody tr'));
 
-            // 1. If codes are selected in bulk or checked, export only those rows
             if (selectedEmployeeCodesSet.size > 0) {
                 return allRows.filter(function(r) {
                     var empCode = (r.getAttribute('data-emp-code') || '').trim().toUpperCase();
@@ -1471,7 +1745,6 @@
                 return checkedRows;
             }
 
-            // 2. Otherwise export all filtered/matched records
             return allRows.filter(function(r) {
                 return r.dataset.matched !== '0';
             });
@@ -1486,8 +1759,6 @@
             if (!table || !table.tBodies || !table.tBodies[0]) return;
 
             var rows = table.tBodies[0].rows;
-            if (rows.length === 1 && rows[0].cells.length === 1) return;
-
             var matched = [];
             for (var i = 0; i < rows.length; i++) {
                 if (rows[i].dataset.matched !== '0') matched.push(rows[i]);
@@ -1502,8 +1773,10 @@
             var end = Math.min(matched.length, start + pageSize);
             for (var j = start; j < end; j++) matched[j].style.display = '';
 
-            document.getElementById('pageInfo').textContent = 'Page ' + currentPage + ' of ' + totalPages;
-            document.getElementById('totalBadge').textContent = 'Total Records: ' + matched.length;
+            var pageInfo = document.getElementById('pageInfo');
+            var totalBadge = document.getElementById('totalBadge');
+            if (pageInfo) pageInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
+            if (totalBadge) totalBadge.textContent = 'Total Records: ' + matched.length;
 
             updateSelectAllState();
         }
@@ -1532,7 +1805,6 @@
             var headerRow = [];
             var ths = table.tHead.rows[0].cells;
             
-            // Skip column 0 (Checkbox) and column 1 (Action)
             for (var h = 2; h < ths.length; h++) {
                 headerRow.push(ths[h].innerText.trim());
             }
@@ -1540,9 +1812,7 @@
 
             var rows = getSelectedOrVisibleRows();
             for (var i = 0; i < rows.length; i++) {
-                if (rows.length === 1 && rows[i].cells.length === 1) continue;
                 var rowData = [];
-                // Skip column 0 (Checkbox) and column 1 (Action)
                 for (var c = 2; c < rows[i].cells.length; c++) {
                     rowData.push((rows[i].cells[c].innerText || rows[i].cells[c].textContent).trim());
                 }
@@ -1586,13 +1856,12 @@
             URL.revokeObjectURL(url);
         }
 
-        /* Companion Transfer Summary Excel Sheet */
         function generateCompanionExcel(debitAccNo, pymtDate, formatName) {
             var table = document.getElementById('payRegisterTable');
             if (!table || !table.tBodies || !table.tBodies[0]) return;
 
             var rows = getSelectedOrVisibleRows();
-            if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length === 1)) return;
+            if (rows.length === 0) return;
 
             var colIndexMap = {};
             var ths = table.tHead.rows[0].cells;
@@ -1617,38 +1886,17 @@
             var yyyy = now.getFullYear();
 
             var companionHeaders = [
-                'EMP_CODE',
-                'DOJ',
-                'Designation',
-                'AADHAR_NO',
-                'EMP_NAME',
-                'FATHER_NAME',
-                'MOBILE',
-                'CLUSTER',
-                'ZONE',
-                'CIRCLE',
-                'DIV',
-                'ACCOUNT_NO',
-                'IFSC',
-                'BRANCH_NAME',
-                'BANK_NAME',
-                'DB_STATUS',
-                'NET_PAY',
-                'TOTAL_TCS',
-                'SALARY_STATUS',
-                'TRANSFER_DATE',
-                'DEBIT_ACCOUNT'
+                'EMP_CODE', 'DOJ', 'Designation', 'AADHAR_NO', 'EMP_NAME', 'FATHER_NAME', 'MOBILE',
+                'CLUSTER', 'ZONE', 'CIRCLE', 'DIV', 'ACCOUNT_NO', 'IFSC', 'BRANCH_NAME', 'BANK_NAME',
+                'DB_STATUS', 'NET_PAY', 'TOTAL_TCS', 'SALARY_STATUS', 'TRANSFER_DATE', 'DEBIT_ACCOUNT'
             ];
 
             var summaryRows = [companionHeaders];
 
             for (var i = 0; i < rows.length; i++) {
                 var r = rows[i];
-
                 var dbStatus = (r.getAttribute('data-db-status') || '').trim().toLowerCase();
-                if (dbStatus !== 'allow') {
-                    continue;
-                }
+                if (dbStatus !== 'allow') continue;
 
                 var empCode = getCellVal(r, 'CODE');
                 var doj = getCellVal(r, 'DOJ');
@@ -1670,27 +1918,9 @@
                 var totalTcs = parseFloat(getCellVal(r, 'TOTAL_TCS_ACT').replace(/,/g, '')) || 0;
 
                 summaryRows.push([
-                    empCode,
-                    doj,
-                    designation,
-                    aadhar,
-                    empName,
-                    fatherName,
-                    mobile,
-                    cluster,
-                    zone,
-                    circle,
-                    div,
-                    accNo,
-                    ifsc,
-                    branchName,
-                    bankName,
-                    rowStatus,
-                    netAmt,
-                    totalTcs,
-                    "",
-                    "",
-                    ""
+                    empCode, doj, designation, aadhar, empName, fatherName, mobile,
+                    cluster, zone, circle, div, accNo, ifsc, branchName, bankName,
+                    rowStatus, netAmt, totalTcs, "", "", ""
                 ]);
             }
 
@@ -1699,16 +1929,8 @@
             var yearYY = (selectedYear && selectedYear.length >= 2) ? selectedYear.substring(selectedYear.length - 2) : "";
 
             var ws = XLSX.utils.aoa_to_sheet(summaryRows);
-            ws['!cols'] = [
-                { wch: 14 }, { wch: 12 }, { wch: 20 }, { wch: 16 }, { wch: 25 },
-                { wch: 22 }, { wch: 14 }, { wch: 12 }, { wch: 18 }, { wch: 20 },
-                { wch: 20 }, { wch: 20 }, { wch: 14 }, { wch: 18 }, { wch: 18 },
-                { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 15 }, { wch: 18 }
-            ];
-
             var wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Salary_Summary");
-
             var companionFileName = formatName + "_SUMMARY_DETAILS_" + clusterLabel + "_" + monthLabel + "_" + yearYY + "_" + dd + "-" + mm + "-" + yyyy + ".xlsx";
 
             setTimeout(function() {
@@ -1716,14 +1938,11 @@
             }, 600);
         }
 
-        /* Download Master: Always fetches and downloads all records of the cluster from backend */
         async function downloadMaster() {
             var bankSelect = document.getElementById('bankSelect');
             var selectedBank = bankSelect ? bankSelect.value.trim() : "";
             var debitAccNo = getValidatedDebitAccount(null, selectedBank ? selectedBank : "Selected Bank");
-            if (!debitAccNo) {
-                return;
-            }
+            if (!debitAccNo) return;
 
             var now = new Date();
             var dd = String(now.getDate()).padStart(2, '0');
@@ -1732,27 +1951,9 @@
             var pymtDate = dd + '-' + mm + '-' + yyyy;
 
             var companionHeaders = [
-                'EMP_CODE',
-                'DOJ',
-                'Designation',
-                'AADHAR_NO',
-                'EMP_NAME',
-                'FATHER_NAME',
-                'MOBILE',
-                'CLUSTER',
-                'ZONE',
-                'CIRCLE',
-                'DIV',
-                'ACCOUNT_NO',
-                'IFSC',
-                'BRANCH_NAME',
-                'BANK_NAME',
-                'DB_STATUS',
-                'NET_PAY',
-                'TOTAL_TCS',
-                'SALARY_STATUS',
-                'TRANSFER_DATE',
-                'DEBIT_ACCOUNT'
+                'EMP_CODE', 'DOJ', 'Designation', 'AADHAR_NO', 'EMP_NAME', 'FATHER_NAME', 'MOBILE',
+                'CLUSTER', 'ZONE', 'CIRCLE', 'DIV', 'ACCOUNT_NO', 'IFSC', 'BRANCH_NAME', 'BANK_NAME',
+                'DB_STATUS', 'NET_PAY', 'TOTAL_TCS', 'SALARY_STATUS', 'TRANSFER_DATE', 'DEBIT_ACCOUNT'
             ];
 
             var masterRows = [companionHeaders];
@@ -1764,12 +1965,9 @@
                                '&year=' + encodeURIComponent(selectedYear || '');
 
                 var response = await fetch(fetchUrl);
-                if (!response.ok) {
-                    throw new Error("HTTP error " + response.status);
-                }
+                if (!response.ok) throw new Error("HTTP error " + response.status);
 
                 var allClusterRecords = await response.json();
-
                 if (!allClusterRecords || allClusterRecords.length === 0) {
                     alert('No master records found for the selected Cluster.');
                     return;
@@ -1777,7 +1975,6 @@
 
                 for (var i = 0; i < allClusterRecords.length; i++) {
                     var r = allClusterRecords[i];
-
                     var empCode = r.CODE || r.EMP_CODE || '';
                     var doj = r.DOJ || '';
                     var designation = r.DESIGNATION || '';
@@ -1798,27 +1995,9 @@
                     var totalTcs = parseFloat(String(r.TOTAL_TCS_ACT || 0).replace(/,/g, '')) || 0;
 
                     masterRows.push([
-                        empCode,
-                        doj,
-                        designation,
-                        aadhar,
-                        empName,
-                        fatherName,
-                        mobile,
-                        cluster,
-                        zone,
-                        circle,
-                        div,
-                        accNo,
-                        ifsc,
-                        branchName,
-                        bankName,
-                        dbStatus,
-                        netAmt,
-                        totalTcs,
-                        "",
-                        "",
-                        ""
+                        empCode, doj, designation, aadhar, empName, fatherName, mobile,
+                        cluster, zone, circle, div, accNo, ifsc, branchName, bankName,
+                        dbStatus, netAmt, totalTcs, "", "", ""
                     ]);
                 }
 
@@ -1827,13 +2006,6 @@
                 var yearYY = (selectedYear && selectedYear.length >= 2) ? selectedYear.substring(selectedYear.length - 2) : "";
 
                 var ws = XLSX.utils.aoa_to_sheet(masterRows);
-                ws['!cols'] = [
-                    { wch: 14 }, { wch: 12 }, { wch: 20 }, { wch: 16 }, { wch: 25 },
-                    { wch: 22 }, { wch: 14 }, { wch: 12 }, { wch: 18 }, { wch: 20 },
-                    { wch: 20 }, { wch: 20 }, { wch: 14 }, { wch: 18 }, { wch: 18 },
-                    { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 15 }, { wch: 18 }
-                ];
-
                 var wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Master_Details");
 
@@ -1848,12 +2020,9 @@
             }
         }
 
-        /* ICICI Bank Format Multi-Excel */
         async function exportIciciFormat() {
             var debitAccNo = getValidatedDebitAccount("ICICI", "ICICI Bank");
-            if (!debitAccNo) {
-                return;
-            }
+            if (!debitAccNo) return;
 
             var table = document.getElementById('payRegisterTable');
             if (!table || !table.tBodies || !table.tBodies[0]) {
@@ -1862,7 +2031,7 @@
             }
 
             var rows = getSelectedOrVisibleRows();
-            if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length === 1)) {
+            if (rows.length === 0) {
                 alert('No records available to export for the selected filters.');
                 return;
             }
@@ -1871,9 +2040,7 @@
             var ths = table.tHead.rows[0].cells;
             for (var c = 0; c < ths.length; c++) {
                 var colName = ths[c].getAttribute('data-col-name');
-                if (colName) {
-                    colIndexMap[colName.toUpperCase()] = c;
-                }
+                if (colName) colIndexMap[colName.toUpperCase()] = c;
             }
 
             var now = new Date();
@@ -1882,30 +2049,13 @@
             var yyyy = now.getFullYear();
             var pymtDate = dd + '-' + mm + '-' + yyyy;
 
-            var yearYY = "";
-            if (selectedYear && selectedYear.length >= 2) {
-                yearYY = selectedYear.substring(selectedYear.length - 2);
-            } else {
-                yearYY = String(yyyy).substring(2);
-            }
-
+            var yearYY = (selectedYear && selectedYear.length >= 2) ? selectedYear.substring(selectedYear.length - 2) : String(yyyy).substring(2);
             var narrMonth = selectedMonth && selectedMonth.trim() !== "" ? selectedMonth.trim() : "";
             var creditNarr = ("SALARY " + narrMonth + " " + yearYY).replace(/\s+/g, ' ').trim();
 
             var iciciHeaders = [
-                'PYMT_PROD_TYPE_CODE',
-                'PYMT_MODE',
-                'DEBIT_ACC_NO',
-                'BNF_NAME',
-                'BENE_ACC_NO',
-                'BENE_IFSC',
-                'AMOUNT',
-                'CREDIT_NARR',
-                'PYMT_DATE',
-                'MOBILE_NUM',
-                'EMAIL_ID',
-                'REMARK',
-                'REF_NO'
+                'PYMT_PROD_TYPE_CODE', 'PYMT_MODE', 'DEBIT_ACC_NO', 'BNF_NAME', 'BENE_ACC_NO',
+                'BENE_IFSC', 'AMOUNT', 'CREDIT_NARR', 'PYMT_DATE', 'MOBILE_NUM', 'EMAIL_ID', 'REMARK', 'REF_NO'
             ];
 
             var generatedRows = [];
@@ -1920,67 +2070,25 @@
 
             for (var i = 0; i < rows.length; i++) {
                 var r = rows[i];
-
                 var dbStatus = (r.getAttribute('data-db-status') || '').trim().toLowerCase();
-                if (dbStatus !== 'allow') {
-                    continue;
-                }
+                if (dbStatus !== 'allow') continue;
 
-                var empName = getCellVal(r, 'EMP_NAME')
-                    .replace(/\./g, ' ')
-                    .replace(/[^a-zA-Z0-9\s]/g, '')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-
+                var empName = getCellVal(r, 'EMP_NAME').replace(/\./g, ' ').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
                 var ifsc = getCellVal(r, 'IFSC');
                 var accNo = getCellVal(r, 'ACCOUNT_NO');
                 var totalTcs = getCellVal(r, 'TOTAL_TCS_ACT');
                 var netAmt = getCellVal(r, 'NET_AMT_PAYABLE');
-                var mobile = "";
-                var email = "";
-                var remark = "";
 
-                var pymtMode = "NEFT";
-                if (ifsc && ifsc.toUpperCase().startsWith("ICIC")) {
-                    pymtMode = "FT";
-                }
+                var pymtMode = (ifsc && ifsc.toUpperCase().startsWith("ICIC")) ? "FT" : "NEFT";
 
                 var amt1 = parseFloat(totalTcs.replace(/,/g, '')) || 0;
                 if (amt1 > 0) {
-                    generatedRows.push([
-                        "PAB_VENDOR",
-                        pymtMode,
-                        debitAccNo,
-                        empName,
-                        accNo,
-                        ifsc,
-                        amt1,
-                        creditNarr,
-                        pymtDate,
-                        mobile,
-                        email,
-                        remark,
-                        ""
-                    ]);
+                    generatedRows.push(["PAB_VENDOR", pymtMode, debitAccNo, empName, accNo, ifsc, amt1, creditNarr, pymtDate, "", "", "", ""]);
                 }
 
                 var amt2 = parseFloat(netAmt.replace(/,/g, '')) || 0;
                 if (amt2 > 0) {
-                    generatedRows.push([
-                        "PAB_VENDOR",
-                        pymtMode,
-                        debitAccNo,
-                        empName,
-                        accNo,
-                        ifsc,
-                        amt2,
-                        creditNarr,
-                        pymtDate,
-                        mobile,
-                        email,
-                        remark,
-                        ""
-                    ]);
+                    generatedRows.push(["PAB_VENDOR", pymtMode, debitAccNo, empName, accNo, ifsc, amt2, creditNarr, pymtDate, "", "", "", ""]);
                 }
             }
 
@@ -1991,68 +2099,43 @@
 
             var maxRecordsPerSheet = 199;
             var totalFiles = Math.ceil(generatedRows.length / maxRecordsPerSheet);
-
             var clusterLabel = selectedCluster ? "CL" + selectedCluster : "ALL_CLUSTERS";
             var monthLabel = narrMonth !== "" ? narrMonth : "ALL";
 
             if (totalFiles === 1) {
                 var sheetData = [iciciHeaders].concat(generatedRows);
                 var ws = XLSX.utils.aoa_to_sheet(sheetData);
-                ws['!cols'] = [
-                    { wch: 22 }, { wch: 12 }, { wch: 18 }, { wch: 26 },
-                    { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 24 },
-                    { wch: 14 }, { wch: 15 }, { wch: 25 }, { wch: 15 }, { wch: 12 }
-                ];
                 var wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Split 1");
                 XLSX.writeFile(wb, "ICICI_SAL_" + clusterLabel + "_" + monthLabel + "_" + yearYY + "_" + dd + "-" + mm + "-" + yyyy + ".xlsx");
             } else {
                 var zip = new JSZip();
-
                 for (var fileIdx = 0; fileIdx < totalFiles; fileIdx++) {
                     var start = fileIdx * maxRecordsPerSheet;
                     var end = Math.min(generatedRows.length, start + maxRecordsPerSheet);
                     var chunk = generatedRows.slice(start, end);
-
                     var sheetData = [iciciHeaders].concat(chunk);
                     var ws = XLSX.utils.aoa_to_sheet(sheetData);
-
-                    ws['!cols'] = [
-                        { wch: 22 }, { wch: 12 }, { wch: 18 }, { wch: 26 },
-                        { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 24 },
-                        { wch: 14 }, { wch: 15 }, { wch: 25 }, { wch: 15 }, { wch: 12 }
-                    ];
-
                     var wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, "Split " + (fileIdx + 1));
-
                     var wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-                    var excelFileName = "ICICI_SAL_" + clusterLabel + "_" + monthLabel + "_" + yearYY + "_Part" + (fileIdx + 1) + "_of_" + totalFiles + "_" + dd + "-" + mm + "-" + yyyy + ".xlsx";
-
-                    zip.file(excelFileName, wbout);
+                    zip.file("ICICI_SAL_" + clusterLabel + "_" + monthLabel + "_" + yearYY + "_Part" + (fileIdx + 1) + "_of_" + totalFiles + "_" + dd + "-" + mm + "-" + yyyy + ".xlsx", wbout);
                 }
-
                 var zipBlob = await zip.generateAsync({ type: "blob" });
-                var zipFileName = "ICICI_SAL_" + clusterLabel + "_" + monthLabel + "_" + yearYY + "_AllParts (" + totalFiles + " Files)_" + dd + "-" + mm + "-" + yyyy + ".zip";
-
                 var link = document.createElement("a");
                 link.href = URL.createObjectURL(zipBlob);
-                link.download = zipFileName;
+                link.download = "ICICI_SAL_" + clusterLabel + "_" + monthLabel + "_" + yearYY + "_AllParts_" + dd + "-" + mm + "-" + yyyy + ".zip";
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
             }
 
             generateCompanionExcel(debitAccNo, pymtDate, "ICICI");
         }
 
-        /* BOM Bank Pipe-Delimited (.txt) Export Implementation */
         function exportBomTxtFormat() {
             var debitAccNo = getValidatedDebitAccount("BOM", "Bank of Maharashtra (BOM)");
-            if (!debitAccNo) {
-                return;
-            }
+            if (!debitAccNo) return;
 
             var table = document.getElementById('payRegisterTable');
             if (!table || !table.tBodies || !table.tBodies[0]) {
@@ -2061,7 +2144,7 @@
             }
 
             var rows = getSelectedOrVisibleRows();
-            if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length === 1)) {
+            if (rows.length === 0) {
                 alert('No records available to export for the selected filters.');
                 return;
             }
@@ -2070,9 +2153,7 @@
             var ths = table.tHead.rows[0].cells;
             for (var c = 0; c < ths.length; c++) {
                 var colName = ths[c].getAttribute('data-col-name');
-                if (colName) {
-                    colIndexMap[colName.toUpperCase()] = c;
-                }
+                if (colName) colIndexMap[colName.toUpperCase()] = c;
             }
 
             var now = new Date();
@@ -2081,43 +2162,21 @@
             var yyyy = now.getFullYear();
             var pymtDate = dd + '-' + mm + '-' + yyyy;
 
-            var yearYY = "";
-            if (selectedYear && selectedYear.length >= 2) {
-                yearYY = selectedYear.substring(selectedYear.length - 2);
-            } else {
-                yearYY = String(yyyy).substring(2);
-            }
-
+            var yearYY = (selectedYear && selectedYear.length >= 2) ? selectedYear.substring(selectedYear.length - 2) : String(yyyy).substring(2);
             var narrMonth = selectedMonth && selectedMonth.trim() !== "" ? selectedMonth.trim() : "";
             var creditNarr = ("SALARY " + narrMonth + " " + yearYY).replace(/\s+/g, ' ').trim();
 
             var clusterLabel = selectedCluster ? "CL" + selectedCluster : "ALL_CLUSTERS";
-            var monthLabel = narrMonth !== "" ? narrMonth : "ALL";
             var divisionLabel = (document.querySelectorAll('.divisionCheckbox:checked').length === 1)
                 ? document.querySelector('.divisionCheckbox:checked').value.replace(/[^a-zA-Z0-9_-]/g, '_')
                 : "ALL_DIVISIONS";
-            var txtFileName = "BOM_SAL_" + clusterLabel + "_" + divisionLabel + "_" + monthLabel + "_" + yearYY + "_" + dd + "-" + mm + "-" + yyyy + ".txt";
+            var txtFileName = "BOM_SAL_" + clusterLabel + "_" + divisionLabel + "_" + narrMonth + "_" + yearYY + "_" + dd + "-" + mm + "-" + yyyy + ".txt";
 
             var bomHeaders = [
-                'Debit Account No',
-                'Mode of Payment',
-                'Benf Account No',
-                'Benf Name',
-                'Amount',
-                'Benf Add1',
-                'Benf Add2',
-                'Benf Add3',
-                'Benf PinCode',
-                'Benf Mobile No',
-                'Benf email ID',
-                'DD Payable At',
-                'Benf IFSC',
-                'Branch Name',
-                'Bank Name',
-                'Benf Account Type',
-                'Narration1',
-                'Narration2',
-                'Payment Ref No'
+                'Debit Account No', 'Mode of Payment', 'Benf Account No', 'Benf Name', 'Amount',
+                'Benf Add1', 'Benf Add2', 'Benf Add3', 'Benf PinCode', 'Benf Mobile No', 'Benf email ID',
+                'DD Payable At', 'Benf IFSC', 'Branch Name', 'Bank Name', 'Benf Account Type',
+                'Narration1', 'Narration2', 'Payment Ref No'
             ];
 
             var textLines = [];
@@ -2135,18 +2194,10 @@
 
             for (var i = 0; i < rows.length; i++) {
                 var r = rows[i];
-
                 var dbStatus = (r.getAttribute('data-db-status') || '').trim().toLowerCase();
-                if (dbStatus !== 'allow') {
-                    continue;
-                }
+                if (dbStatus !== 'allow') continue;
 
-                var empName = getCellVal(r, 'EMP_NAME')
-                    .replace(/\./g, ' ')
-                    .replace(/[^a-zA-Z0-9\s]/g, '')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-
+                var empName = getCellVal(r, 'EMP_NAME').replace(/\./g, ' ').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
                 var ifsc = getCellVal(r, 'IFSC');
                 var accNo = getCellVal(r, 'ACCOUNT_NO');
                 var totalTcs = getCellVal(r, 'TOTAL_TCS_ACT');
@@ -2154,71 +2205,16 @@
                 var bankName = getCellVal(r, 'BANK_NAME');
                 var branchName = getCellVal(r, 'BANK_BRANCH');
 
-                var benfAdd1 = "";
-                var benfAdd2 = "";
-                var benfAdd3 = "";
-                var benfPinCode = "";
-                var benfMobile = "";
-                var benfEmail = "";
-                var ddPayableAt = "";
-                var benfAccountType = "SA";
-                var narration2 = "";
-
-                var pymtMode = "N";
-                if (ifsc && ifsc.toUpperCase().startsWith("MAHB")) {
-                    pymtMode = "I";
-                }
+                var pymtMode = (ifsc && ifsc.toUpperCase().startsWith("MAHB")) ? "I" : "N";
 
                 var amt1 = parseFloat(totalTcs.replace(/,/g, '')) || 0;
                 if (amt1 > 0) {
-                    var refNo1 = clusterLabel + '/' + pymtDate + '/' + recordCounter++;
-                    textLines.push([
-                        debitAccNo,
-                        pymtMode,
-                        accNo,
-                        empName,
-                        amt1,
-                        benfAdd1,
-                        benfAdd2,
-                        benfAdd3,
-                        benfPinCode,
-                        benfMobile,
-                        benfEmail,
-                        ddPayableAt,
-                        ifsc,
-                        branchName,
-                        bankName,
-                        benfAccountType,
-                        creditNarr,
-                        narration2,
-                        refNo1
-                    ].join('|'));
+                    textLines.push([debitAccNo, pymtMode, accNo, empName, amt1, "", "", "", "", "", "", "", ifsc, branchName, bankName, "SA", creditNarr, "", clusterLabel + '/' + pymtDate + '/' + recordCounter++].join('|'));
                 }
 
                 var amt2 = parseFloat(netAmt.replace(/,/g, '')) || 0;
                 if (amt2 > 0) {
-                    var refNo2 = clusterLabel + '/' + pymtDate + '/' + recordCounter++;
-                    textLines.push([
-                        debitAccNo,
-                        pymtMode,
-                        accNo,
-                        empName,
-                        amt2,
-                        benfAdd1,
-                        benfAdd2,
-                        benfAdd3,
-                        benfPinCode,
-                        benfMobile,
-                        benfEmail,
-                        ddPayableAt,
-                        ifsc,
-                        branchName,
-                        bankName,
-                        benfAccountType,
-                        creditNarr,
-                        narration2,
-                        refNo2
-                    ].join('|'));
+                    textLines.push([debitAccNo, pymtMode, accNo, empName, amt2, "", "", "", "", "", "", "", ifsc, branchName, bankName, "SA", creditNarr, "", clusterLabel + '/' + pymtDate + '/' + recordCounter++].join('|'));
                 }
             }
 
