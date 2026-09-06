@@ -19,30 +19,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Reading & Invoice Progress Report</title>
     <style>
-       /*  body {
-            font-family: Arial, Helvetica, sans-serif;
-            margin: 25px;
-            background-color: #f4f6f9;
-        }
-        .report-card {
-            background-color: #ffffff;
-            border-radius: 6px;
-            padding: 20px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-        .report-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        } */
         body {
 		    margin: 10px;
 		    padding: 0;
 		    background-color: #f4f6f9;
+            font-family: Arial, Helvetica, sans-serif;
 		}
 		.report-card {
 		    padding: 12px;
+            background-color: #ffffff;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 		}
 		.report-header {
             display: flex;
@@ -52,7 +39,7 @@
         } 
 		.table-responsive {
 		    overflow-x: auto;
-		    -webkit-overflow-scrolling: touch; /* Smooth momentum scrolling on iOS/Android */
+		    -webkit-overflow-scrolling: touch;
 		    margin-top: 10px;
 		    border: 1px solid #cbd5e1;
 		    border-radius: 4px;
@@ -67,7 +54,7 @@
 		}
 		@media (max-width: 768px) {
 		    .mobile-scroll-hint {
-		        display: block; /* Show hint on mobile devices */
+		        display: block;
 		    }
 		    .report-header {
 		        flex-direction: column;
@@ -93,7 +80,6 @@
         .btn-dash { background-color: #6c757d; margin-right: 5px; }
         .btn-dash:hover { background-color: #5a6268; }
 
-        .table-responsive { overflow-x: auto; }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -105,7 +91,6 @@
             padding: 8px 9px;
             white-space: nowrap;
         }
-
         th {
             background-color: #1f4e78;
             color: #ffffff;
@@ -113,7 +98,6 @@
             vertical-align: middle;
             position: relative;
         }
-
         .filter-header-cell {
             display: flex;
             flex-direction: column;
@@ -127,7 +111,6 @@
             color: #ffffff;
             letter-spacing: 0.3px;
         }
-
         .pill-select {
             background-color: #ffffff;
             color: #1f4e78;
@@ -147,7 +130,6 @@
             border-color: #ffc107;
             box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.4);
         }
-
         .custom-dropdown {
             position: relative;
             display: inline-block;
@@ -203,7 +185,6 @@
         .custom-option:hover {
             background-color: #f1f5f9;
         }
-
         .legend-container {
             display: flex;
             align-items: center;
@@ -249,7 +230,6 @@
             color: #1f4e78;
             background-color: #ffffff !important;
         }
-
         .status-running { color: #d9534f; font-weight: 600; }
         .status-completed { color: #27ae60; font-weight: 600; }
         .diff-positive { color: #27ae60; font-weight: bold; }
@@ -273,7 +253,6 @@
             margin-top: 15px;
             font-size: 14px;
         }
-        /* Oval / Pill-shaped Billed % Badges */
         .pill-badge {
             display: inline-block;
             padding: 3px 10px;
@@ -282,73 +261,35 @@
             font-size: 12px;
             text-align: center;
         }
-        .badge-low { 
-            background-color: #ffd1dc; 
-            color: #900c3f; 
-            border: 1px solid #f5c6cb; 
-        }
-        .badge-medium { 
-            background-color: #ffe5b4; 
-            color: #b78103; 
-            border: 1px solid #ffeeba; 
-        }
-        .badge-high { 
-            background-color: #d4edda; 
-            color: #155724; 
-            border: 1px solid #c3e6cb; 
-        }
+        .badge-low { background-color: #ffd1dc; color: #900c3f; border: 1px solid #f5c6cb; }
+        .badge-medium { background-color: #ffe5b4; color: #b78103; border: 1px solid #ffeeba; }
+        .badge-high { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     </style>
 </head>
 <body>
 
 <div class="report-card">
-    <%-- <div class="report-header">
-        <h2>Daily Progress &amp; Invoice Reconciliation Report</h2>
-        <div>
-            <a href="dashboard.jsp" class="btn btn-dash">Dashboard</a>
-            <a href="${pageContext.request.contextPath}/ReportServlet" class="btn btn-refresh">Refresh</a>
-        </div>
-    </div>
-
-    <div class="legend-container">
-        <span><strong>Billed % Ranges:</strong></span>
-        <div class="legend-item"><span class="legend-box box-low"></span> &lt; 50.00% (Low)</div>
-        <div class="legend-item"><span class="legend-box box-medium"></span> 50.00% - 75.00% (Medium)</div>
-        <div class="legend-item"><span class="legend-box box-high"></span> &gt; 75.00% (High)</div>
-        
-        <div>
-            <a href="dashboard.jsp" class="btn btn-dash">Dashboard</a>
-            <a href="${pageContext.request.contextPath}/ReportServlet" class="btn btn-refresh">Refresh</a>
-        </div>
-    </div> --%>
     <div class="report-header">
         <h2>Daily Progress &amp; Invoice Reconciliation Report</h2>
     </div>
 
-    <!-- Unified Container holding both Legends (left) and Buttons (right) -->
     <div class="legend-container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; width: 100%; box-sizing: border-box;">
-        
-        <!-- Left Side: Legends -->
         <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
             <span><strong>Billed % Ranges:</strong></span>
             <div class="legend-item"><span class="legend-box box-low"></span> &lt; 50.00% (Low)</div>
             <div class="legend-item"><span class="legend-box box-medium"></span> 50.00% - 85.00% (Medium)</div>
             <div class="legend-item"><span class="legend-box box-high"></span> &gt; 85.00% (High)</div>
         </div>
-
-        <!-- Right Side: Action Buttons -->
         <div>
             <a href="dashboard.jsp" class="btn btn-dash">Dashboard</a>
             <a href="${pageContext.request.contextPath}/ReportServlet" class="btn btn-refresh">Refresh</a>
         </div>
-        
     </div>
 
     <c:choose>
         <c:when test="${hasData}">
             <div class="mobile-scroll-hint">&larr; Swipe horizontally to view all columns &rarr;</div>
             <div class="table-responsive">
-            
                 <table id="reportTable">
                     <thead>
                         <tr>
@@ -463,13 +404,15 @@
                                 <td class="state-cell">${item.state}</td>
                                 <td class="city-cell">${item.city}</td>
                                 <td class="ga-cell">${item.gaName}</td>
-                                <td>${item.portionId}</td>
+                                <td>
+                                    <a href="javascript:void(0);" onclick="openPortionModal(${item.portionId})" style="color: #1f4e78; font-weight: bold; text-decoration: underline;">
+                                        ${item.portionId}
+                                    </a>
+                                </td>
                                 <td>${item.totalData != null ? item.totalData : '-'}</td>
                                 <td>${item.schedule}</td>
                                 <td>${item.todayReading}</td>
                                 <td>${item.todayInv}</td>
-                                <!-- <td>0</td>
-                                <td>0</td> -->
                                 <td>${item.yesterdayReading}</td>
                                 <td>${item.yesterdayInv}</td>
                                 <td>${item.tillYdayRead}</td>
@@ -477,22 +420,6 @@
                                 <td>${item.totalReading}</td>
                                 <td>${item.totalInv}</td>
                                 <td>${item.unbilled}</td>
-                                
-                                    <%-- <c:set var="bPct" value="${item.billedPercent}" />
-                                    <td class="<c:choose><c:when test='${bPct < 50}'>box-low</c:when><c:when test='${bPct >= 50 && bPct <= 75}'>box-medium</c:when><c:otherwise>box-high</c:otherwise></c:choose>">
-	                                    <span style="font-weight: 700;">
-	                                        <fmt:formatNumber value="${bPct}" maxFractionDigits="2" minFractionDigits="2"/>%
-	                                    </span>
-                                </td> --%>
-                                <%-- <td>
-                                    <c:set var="bPct" value="${item.billedPercent}" />
-                                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                        <span class="legend-box <c:choose><c:when test='${bPct < 50}'>box-low</c:when><c:when test='${bPct >= 50 && bPct <= 75}'>box-medium</c:when><c:otherwise>box-high</c:otherwise></c:choose>"></span>
-                                        <span style="font-weight: 600;">
-                                            <fmt:formatNumber value="${bPct}" maxFractionDigits="2" minFractionDigits="2"/>%
-                                        </span>
-                                    </div>
-                                </td> --%>
                                 <td>
                                     <c:set var="bPct" value="${item.billedPercent}" />
                                     <span class="pill-badge <c:choose><c:when test='${bPct < 50}'>badge-low</c:when><c:when test='${bPct >= 50 && bPct <= 85}'>badge-medium</c:when><c:otherwise>badge-high</c:otherwise></c:choose>">
@@ -539,7 +466,6 @@
                             <td id="totTarget">-</td>
                             <td id="totDiff">-</td>
                         </tr>
-
                         <tr class="diff-row">
                             <td style="text-align: center;" colspan="6">Variance (Reading - Invoice)</td>
                             <td>-</td>
@@ -562,6 +488,59 @@
             </div>
         </c:otherwise>
     </c:choose>
+</div>
+
+<!-- Portion Details Modal Popup -->
+<div id="portionModal" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5);">
+    <div style="background-color:#ffffff; margin:10% auto; padding:20px; border-radius:8px; width:90%; max-width:600px; box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-bottom:15px;">
+            <h3 style="margin:0; color:#1f4e78; font-size:18px;">Portion Details Breakdown (PID: <span id="modalPortionId"></span>)</h3>
+            <button onclick="closePortionModal()" style="background:none; border:none; font-size:18px; cursor:pointer; font-weight:bold;">&times;</button>
+        </div>
+        
+        <div style="margin-bottom: 15px; display:flex; gap:15px; font-size:13px; font-weight:600; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
+            <div>Today's Readings: <span id="modalTodayTotal" style="color:#27ae60;">0</span></div>
+            <div>Yesterday's Readings: <span id="modalYdayTotal" style="color:#3498db;">0</span></div>
+            <div>Total Schedule Readings: <span id="modalScheduleTotal" style="color:#2c3e50;">0</span></div>
+        </div>
+
+        <!-- <div style="max-height:300px; overflow-y:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                <thead>
+                    <tr style="background:#1f4e78; color:white;">
+                        <th style="padding:6px; border:1px solid #cbd5e1;">Meter Reader ID</th>
+                        <th style="padding:6px; border:1px solid #cbd5e1;">Today's Count</th>
+                        <th style="padding:6px; border:1px solid #cbd5e1;">Yesterday's Count</th>
+                        <th style="padding:6px; border:1px solid #cbd5e1;">Total Count</th>
+                    </tr>
+                </thead>
+                <tbody id="modalReaderTableBody">
+                    Populated dynamically
+                </tbody>
+            </table>
+        </div> -->
+        
+        <div style="max-height:300px; overflow-y:auto;">
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+            <tr style="background:#1f4e78; color:white;">
+                <th style="padding:6px; border:1px solid #cbd5e1;">Meter Reader ID</th>
+                <th style="padding:6px; border:1px solid #cbd5e1;">User Name</th>
+                <th style="padding:6px; border:1px solid #cbd5e1;">Today's Count</th>
+                <th style="padding:6px; border:1px solid #cbd5e1;">Yesterday's Count</th>
+                <th style="padding:6px; border:1px solid #cbd5e1;">Total Count</th>
+            </tr>
+        </thead>
+        <tbody id="modalReaderTableBody">
+            <!-- Populated dynamically -->
+        </tbody>
+    </table>
+</div>
+
+        <div style="text-align:right; margin-top:15px;">
+            <button onclick="closePortionModal()" class="btn btn-dash" style="background-color:#64748b;">Close</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -965,6 +944,63 @@ function applyFilters() {
     document.getElementById("varYday").innerText = sumYdayRead - sumYdayInv;
     document.getElementById("varTillYday").innerText = sumTillYdayRead - sumTillYdayInv;
     document.getElementById("varTotal").innerText = sumTotalRead - sumTotalInv;
+}
+
+function openPortionModal(pid) {
+    document.getElementById("modalPortionId").innerText = pid;
+    document.getElementById("modalTodayTotal").innerText = "...";
+    document.getElementById("modalYdayTotal").innerText = "...";
+    document.getElementById("modalScheduleTotal").innerText = "...";
+    document.getElementById("modalReaderTableBody").innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">Loading details...</td></tr>';
+    
+    document.getElementById("portionModal").style.display = "block";
+
+    fetch('ReportServlet?action=portionDetails&pid=' + pid)
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.error) {
+                alert(data.error);
+                closePortionModal();
+                return;
+            }
+
+            document.getElementById("modalTodayTotal").innerText = data.todayReadings;
+            document.getElementById("modalYdayTotal").innerText = data.ydayReadings;
+            document.getElementById("modalScheduleTotal").innerText = data.totalScheduleReadings;
+
+            var tbody = document.getElementById("modalReaderTableBody");
+            tbody.innerHTML = "";
+
+            if (data.readers && data.readers.length > 0) {
+                data.readers.forEach(function(r) {
+                    var tr = document.createElement("tr");
+                    tr.innerHTML = '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + r.userId + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + r.userName + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + r.todayCount + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + r.ydayCount + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center; font-weight:bold;">' + r.totalCount + '</td>';
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px; color:#64748b;">No reader records found for this portion schedule.</td></tr>';
+            }
+        })
+        .catch(function(err) {
+            console.error("Error fetching portion details:", err);
+            alert("Failed to load details.");
+            closePortionModal();
+        });
+}
+
+function closePortionModal() {
+    document.getElementById("portionModal").style.display = "none";
+}
+
+window.onclick = function(event) {
+    var modal = document.getElementById("portionModal");
+    if (event.target == modal) {
+        closePortionModal();
+    }
 }
 
 document.addEventListener("DOMContentLoaded", function() {

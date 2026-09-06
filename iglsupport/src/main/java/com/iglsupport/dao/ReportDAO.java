@@ -342,4 +342,136 @@ public class ReportDAO {
         }
         return counts;
     }
+    
+//    public static String getPortionDrilldownDetails(int pid) {
+//        int todayReadings = 0;
+//        int ydayReadings = 0;
+//        int totalScheduleReadings = 0;
+//        
+//        StringBuilder readersJson = new StringBuilder();
+//        readersJson.append("[");
+//
+//        String query = "SELECT " +
+//                       "    r.userId, " +
+//                       "    SUM(CASE WHEN DATE(r.reading_date) = CURRENT_DATE() THEN 1 ELSE 0 END) AS today_cnt, " +
+//                       "    SUM(CASE WHEN DATE(r.reading_date) = CURRENT_DATE() - INTERVAL 1 DAY THEN 1 ELSE 0 END) AS yday_cnt, " +
+//                       "    COUNT(r.id) AS total_cnt " +
+//                       "FROM readings r " +
+//                       "JOIN portion_details d ON r.pid = d.pid " +
+//                       "WHERE r.pid = ? " +
+//                       "  AND (d.start_date IS NULL OR DATE(r.reading_date) >= d.start_date) " +
+//                       "  AND (d.end_date IS NULL OR DATE(r.reading_date) <= d.end_date) " +
+//                       "GROUP BY r.userId";
+//
+//        try (Connection conn = DBConnection.getConnection();
+//             PreparedStatement pst = conn.prepareStatement(query)) {
+//            pst.setInt(1, pid);
+//            try (ResultSet rs = pst.executeQuery()) {
+//                boolean first = true;
+//                while (rs.next()) {
+//                    String readerId = rs.getString("userId");
+//                    int tCnt = rs.getInt("today_cnt");
+//                    int yCnt = rs.getInt("yday_cnt");
+//                    int totCnt = rs.getInt("total_cnt");
+//
+//                    todayReadings += tCnt;
+//                    ydayReadings += yCnt;
+//                    totalScheduleReadings += totCnt;
+//
+//                    if (!first) {
+//                        readersJson.append(",");
+//                    }
+//                    readersJson.append("{")
+//                               .append("\"userId\":\"").append(readerId != null ? readerId.replace("\"", "\\\"") : "N/A").append("\",")
+//                               .append("\"todayCount\":").append(tCnt).append(",")
+//                               .append("\"ydayCount\":").append(yCnt).append(",")
+//                               .append("\"totalCount\":").append(totCnt)
+//                               .append("}");
+//                    first = false;
+//                }
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        readersJson.append("]");
+//
+//        StringBuilder jsonResponse = new StringBuilder();
+//        jsonResponse.append("{")
+//                    .append("\"portionId\":").append(pid).append(",")
+//                    .append("\"todayReadings\":").append(todayReadings).append(",")
+//                    .append("\"ydayReadings\":").append(ydayReadings).append(",")
+//                    .append("\"totalScheduleReadings\":").append(totalScheduleReadings).append(",")
+//                    .append("\"readers\":").append(readersJson.toString())
+//                    .append("}");
+//
+//        return jsonResponse.toString();
+//    }
+    
+    public static String getPortionDrilldownDetails(int pid) {
+        int todayReadings = 0;
+        int ydayReadings = 0;
+        int totalScheduleReadings = 0;
+        
+        StringBuilder readersJson = new StringBuilder();
+        readersJson.append("[");
+
+        String query = "SELECT " +
+                       "    r.userId, " +
+                       "    u.name AS user_name, " +
+                       "    SUM(CASE WHEN DATE(r.reading_date) = CURRENT_DATE() THEN 1 ELSE 0 END) AS today_cnt, " +
+                       "    SUM(CASE WHEN DATE(r.reading_date) = CURRENT_DATE() - INTERVAL 1 DAY THEN 1 ELSE 0 END) AS yday_cnt, " +
+                       "    COUNT(r.id) AS total_cnt " +
+                       "FROM readings r " +
+                       "JOIN portion_details d ON r.pid = d.pid " +
+                       "LEFT JOIN user u ON r.userId = u.userID " +
+                       "WHERE r.pid = ? " +
+                       "  AND (d.start_date IS NULL OR DATE(r.reading_date) >= d.start_date) " +
+                       "  AND (d.end_date IS NULL OR DATE(r.reading_date) <= d.end_date) " +
+                       "GROUP BY r.userId, u.name";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pst = conn.prepareStatement(query)) {
+            pst.setInt(1, pid);
+            try (ResultSet rs = pst.executeQuery()) {
+                boolean first = true;
+                while (rs.next()) {
+                    String readerId = rs.getString("userId");
+                    String userName = rs.getString("user_name");
+                    int tCnt = rs.getInt("today_cnt");
+                    int yCnt = rs.getInt("yday_cnt");
+                    int totCnt = rs.getInt("total_cnt");
+
+                    todayReadings += tCnt;
+                    ydayReadings += yCnt;
+                    totalScheduleReadings += totCnt;
+
+                    if (!first) {
+                        readersJson.append(",");
+                    }
+                    readersJson.append("{")
+                               .append("\"userId\":\"").append(readerId != null ? readerId.replace("\"", "\\\"") : "N/A").append("\",")
+                               .append("\"userName\":\"").append(userName != null ? userName.replace("\"", "\\\"") : "N/A").append("\",")
+                               .append("\"todayCount\":").append(tCnt).append(",")
+                               .append("\"ydayCount\":").append(yCnt).append(",")
+                               .append("\"totalCount\":").append(totCnt)
+                               .append("}");
+                    first = false;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        readersJson.append("]");
+
+        StringBuilder jsonResponse = new StringBuilder();
+        jsonResponse.append("{")
+                    .append("\"portionId\":").append(pid).append(",")
+                    .append("\"todayReadings\":").append(todayReadings).append(",")
+                    .append("\"ydayReadings\":").append(ydayReadings).append(",")
+                    .append("\"totalScheduleReadings\":").append(totalScheduleReadings).append(",")
+                    .append("\"readers\":").append(readersJson.toString())
+                    .append("}");
+
+        return jsonResponse.toString();
+    }
 }

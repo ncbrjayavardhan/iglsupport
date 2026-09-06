@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import com.iglsupport.dao.ReportDAO;
 import com.iglsupport.model.ReportDTO;
 
@@ -48,6 +47,22 @@ public class ReportServlet extends HttpServlet {
             request.setAttribute("message", "No portions found matching your assigned area or inv_status = 1.");
         }
         
+        
+        String action = request.getParameter("action");
+        if ("portionDetails".equals(action)) {
+            response.setContentType("application/json;charset=UTF-8");
+            String pidParam = request.getParameter("pid");
+            if (pidParam != null) {
+                try {
+                    int pid = Integer.parseInt(pidParam);
+                    String jsonDetails=ReportDAO.getPortionDrilldownDetails(pid);
+                    response.getWriter().write(jsonDetails);
+                } catch (Exception e) {
+                    response.getWriter().write("{\"error\": \"Invalid Portion ID\"}");
+                }
+                return;
+            }
+        }
         request.getRequestDispatcher("report.jsp").forward(request, response);
     }
 
