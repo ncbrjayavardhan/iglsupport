@@ -464,15 +464,15 @@
             border-radius: 10px;
         }
         .modal-card-salary-hold {
-            background: linear-gradient(135deg, #fdf6ed 0%, #faedcd 100%);
-            border: 1px solid #e9d8a6 !important;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); 
+            border: 1px solid #fca5a5 !important; 
             border-radius: 10px;
         }
         .modal-card-salary-allow {
-            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-            border: 1px solid #fca5a5 !important;
-            border-radius: 10px;
-        }
+		    background: linear-gradient(135deg, #fefce8 0%, #fef08a 100%);
+		    border: 1px solid #eab308 !important;
+		    border-radius: 10px;
+		}
 
         .modal-section-title {
             font-size: 13px;
