@@ -447,7 +447,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="total-row">
-                            <td style="text-align: center;" colspan="4">Total</td>
+                            <td style="text-align: right;" colspan="4">Total</td>
                             <td id="totData">-</td>
                             <td>-</td>
                             <td id="totTodayRead">0</td>
@@ -501,7 +501,7 @@
         <div style="margin-bottom: 15px; display:flex; gap:15px; font-size:13px; font-weight:600; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
             <div>Today's Readings: <span id="modalTodayTotal" style="color:#27ae60;">0</span></div>
             <div>Yesterday's Readings: <span id="modalYdayTotal" style="color:#3498db;">0</span></div>
-            <div>Total Schedule Readings: <span id="modalScheduleTotal" style="color:#2c3e50;">0</span></div>
+            <div>Total  Readings: <span id="modalScheduleTotal" style="color:#2c3e50;">0</span></div>
         </div>
 
         <!-- <div style="max-height:300px; overflow-y:auto;">
