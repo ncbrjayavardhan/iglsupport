@@ -503,39 +503,23 @@
             <div>Yesterday's Readings: <span id="modalYdayTotal" style="color:#3498db;">0</span></div>
             <div>Total  Readings: <span id="modalScheduleTotal" style="color:#2c3e50;">0</span></div>
         </div>
-
-        <!-- <div style="max-height:300px; overflow-y:auto;">
+        
+        <div style="max-height:300px; overflow-y:auto;">
             <table style="width:100%; border-collapse:collapse; font-size:12px;">
                 <thead>
                     <tr style="background:#1f4e78; color:white;">
                         <th style="padding:6px; border:1px solid #cbd5e1;">Meter Reader ID</th>
+                        <th style="padding:6px; border:1px solid #cbd5e1;">User Name</th>
                         <th style="padding:6px; border:1px solid #cbd5e1;">Today's Count</th>
                         <th style="padding:6px; border:1px solid #cbd5e1;">Yesterday's Count</th>
                         <th style="padding:6px; border:1px solid #cbd5e1;">Total Count</th>
                     </tr>
                 </thead>
                 <tbody id="modalReaderTableBody">
-                    Populated dynamically
+                    <!-- Populated dynamically -->
                 </tbody>
             </table>
-        </div> -->
-        
-        <div style="max-height:300px; overflow-y:auto;">
-    <table style="width:100%; border-collapse:collapse; font-size:12px;">
-        <thead>
-            <tr style="background:#1f4e78; color:white;">
-                <th style="padding:6px; border:1px solid #cbd5e1;">Meter Reader ID</th>
-                <th style="padding:6px; border:1px solid #cbd5e1;">User Name</th>
-                <th style="padding:6px; border:1px solid #cbd5e1;">Today's Count</th>
-                <th style="padding:6px; border:1px solid #cbd5e1;">Yesterday's Count</th>
-                <th style="padding:6px; border:1px solid #cbd5e1;">Total Count</th>
-            </tr>
-        </thead>
-        <tbody id="modalReaderTableBody">
-            <!-- Populated dynamically -->
-        </tbody>
-    </table>
-</div>
+        </div>
 
         <div style="text-align:right; margin-top:15px;">
             <button onclick="closePortionModal()" class="btn btn-dash" style="background-color:#64748b;">Close</button>
@@ -946,12 +930,12 @@ function applyFilters() {
     document.getElementById("varTotal").innerText = sumTotalRead - sumTotalInv;
 }
 
-function openPortionModal(pid) {
+/* function openPortionModal(pid) {
     document.getElementById("modalPortionId").innerText = pid;
     document.getElementById("modalTodayTotal").innerText = "...";
     document.getElementById("modalYdayTotal").innerText = "...";
     document.getElementById("modalScheduleTotal").innerText = "...";
-    document.getElementById("modalReaderTableBody").innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px;">Loading details...</td></tr>';
+    document.getElementById("modalReaderTableBody").innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px;">Loading details...</td></tr>';
     
     document.getElementById("portionModal").style.display = "block";
 
@@ -972,13 +956,77 @@ function openPortionModal(pid) {
             tbody.innerHTML = "";
 
             if (data.readers && data.readers.length > 0) {
-                data.readers.forEach(function(r) {
+                data.readers.forEach(function(item) {
+                    // Hyperlink implementation for meter reader ID (userId) pointing to the daily report servlet
+                    var userIdLink = '<a href="MeterReaderDailyReportServlet?userId=' + encodeURIComponent(item.userId) + 
+                                     '&userName=' + encodeURIComponent(item.userName) + 
+                                     '&gaName=' + encodeURIComponent(item.gaName) + 
+                                     '&portionNo=' + encodeURIComponent(item.portionNo) + 
+                                     '&scheduleStart=' + encodeURIComponent(item.scheduleStart) + 
+                                     '&scheduleEnd=' + encodeURIComponent(item.scheduleEnd) + 
+                                     '" target="_blank">' + item.userId + '</a>';
+
                     var tr = document.createElement("tr");
-                    tr.innerHTML = '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + r.userId + '</td>' +
-                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + r.userName + '</td>' +
-                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + r.todayCount + '</td>' +
-                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + r.ydayCount + '</td>' +
-                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center; font-weight:bold;">' + r.totalCount + '</td>';
+                    tr.innerHTML = '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + userIdLink + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + item.userName + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + item.todayCount + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + item.ydayCount + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center; font-weight:bold;">' + item.totalCount + '</td>';
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px; color:#64748b;">No reader records found for this portion schedule.</td></tr>';
+            }
+        })
+        .catch(function(err) {
+            console.error("Error fetching portion details:", err);
+            alert("Failed to load details.");
+            closePortionModal();
+        });
+} */
+
+function openPortionModal(pid) {
+    document.getElementById("modalPortionId").innerText = pid;
+    document.getElementById("modalTodayTotal").innerText = "...";
+    document.getElementById("modalYdayTotal").innerText = "...";
+    document.getElementById("modalScheduleTotal").innerText = "...";
+    document.getElementById("modalReaderTableBody").innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px;">Loading details...</td></tr>';
+    
+    document.getElementById("portionModal").style.display = "block";
+
+    fetch('ReportServlet?action=portionDetails&pid=' + pid)
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.error) {
+                alert(data.error);
+                closePortionModal();
+                return;
+            }
+
+            document.getElementById("modalTodayTotal").innerText = data.todayReadings;
+            document.getElementById("modalYdayTotal").innerText = data.ydayReadings;
+            document.getElementById("modalScheduleTotal").innerText = data.totalScheduleReadings;
+
+            var tbody = document.getElementById("modalReaderTableBody");
+            tbody.innerHTML = "";
+
+            if (data.readers && data.readers.length > 0) {
+                data.readers.forEach(function(item) {
+                    // Explicitly construct URL containing userId, userName, gaName, portionNo, scheduleStart, scheduleEnd
+                    var userIdLink = '<a href="MeterReaderDailyReportServlet?userId=' + encodeURIComponent(item.userId || '') + 
+                                     '&userName=' + encodeURIComponent(item.userName || '') + 
+                                     '&gaName=' + encodeURIComponent(item.gaName || '') + 
+                                     '&portionNo=' + encodeURIComponent(item.portionNo || '') + 
+                                     '&scheduleStart=' + encodeURIComponent(item.scheduleStart || '') + 
+                                     '&scheduleEnd=' + encodeURIComponent(item.scheduleEnd || '') + 
+                                     '" target="_blank">' + item.userId + '</a>';
+
+                    var tr = document.createElement("tr");
+                    tr.innerHTML = '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + userIdLink + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + item.userName + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + item.todayCount + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center;">' + item.ydayCount + '</td>' +
+                                   '<td style="padding:6px; border:1px solid #cbd5e1; text-align:center; font-weight:bold;">' + item.totalCount + '</td>';
                     tbody.appendChild(tr);
                 });
             } else {

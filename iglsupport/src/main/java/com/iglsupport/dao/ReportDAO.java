@@ -19,116 +19,13 @@ public class ReportDAO {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     public static List<ReportDTO> getDailyReport(Integer userGid, Integer userVid) {
-        List<ReportDTO> reportList = new ArrayList<>();
-        String gaNameFilter = null;
-
-        if (userGid != null && userGid > 0) {
-            String gaQuery = "SELECT name FROM ga WHERE gid = ?";
-            if (userVid != null) {
-                gaQuery += " AND vid = ?";
-            }
-            try (Connection conn = DBConnection.getConnection();
-                 PreparedStatement pst = conn.prepareStatement(gaQuery)) {
-                pst.setInt(1, userGid);
-                if (userVid != null) {
-                    pst.setInt(2, userVid);
-                }
-                try (ResultSet rs = pst.executeQuery()) {
-                    if (rs.next()) {
-                        gaNameFilter = rs.getString("name");
-                    }
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ")
-           .append("    pd.state, ")
-           .append("    pd.city, ")
-           .append("    g.name AS ga_name, ")
-           .append("    p.pid AS portion_id, ")
-           .append("    p.inv_status, ")
-           .append("    pd.total_data, ")
-           .append("    pd.start_date, ")
-           .append("    pd.end_date, ")
-           .append("    COALESCE(r_today.cnt, 0) AS today_reading, ")
-           .append("    COALESCE(r_yday_exact.cnt, 0) AS yday_reading, ")
-           .append("    COALESCE(r_yday.cnt, 0) AS till_yday_reading ")
-           .append("FROM portion p ")
-           .append("JOIN ga g ON p.gid = g.gid ")
-           .append("LEFT JOIN portion_details pd ON p.pid = pd.pid ")
-           .append("LEFT JOIN (" )
-           .append("    SELECT r.pid, COUNT(r.id) AS cnt ")
-           .append("    FROM readings r ")
-           .append("    JOIN portion_details d ON r.pid = d.pid ")
-           .append("    WHERE DATE(r.reading_date) = CURRENT_DATE() ")
-           .append("      AND (d.start_date IS NULL OR DATE(r.reading_date) >= d.start_date) ")
-           .append("      AND (d.end_date IS NULL OR DATE(r.reading_date) <= d.end_date) ")
-           .append("    GROUP BY r.pid ")
-           .append(") r_today ON p.pid = r_today.pid ")
-           .append("LEFT JOIN (" )
-           .append("    SELECT r.pid, COUNT(r.id) AS cnt ")
-           .append("    FROM readings r ")
-           .append("    JOIN portion_details d ON r.pid = d.pid ")
-           .append("    WHERE DATE(r.reading_date) = CURRENT_DATE() - INTERVAL 1 DAY ")
-           .append("      AND (d.start_date IS NULL OR DATE(r.reading_date) >= d.start_date) ")
-           .append("      AND (d.end_date IS NULL OR DATE(r.reading_date) <= d.end_date) ")
-           .append("    GROUP BY r.pid ")
-           .append(") r_yday_exact ON p.pid = r_yday_exact.pid ")
-           .append("LEFT JOIN (" )
-           .append("    SELECT r.pid, COUNT(r.id) AS cnt ")
-           .append("    FROM readings r ")
-           .append("    JOIN portion_details d ON r.pid = d.pid ")
-           .append("    WHERE DATE(r.reading_date) < CURRENT_DATE() ")
-           .append("      AND (d.start_date IS NULL OR DATE(r.reading_date) >= d.start_date) ")
-           .append("      AND (d.end_date IS NULL OR DATE(r.reading_date) <= d.end_date) ")
-           .append("    GROUP BY r.pid ")
-           .append(") r_yday ON p.pid = r_yday.pid ")
-           .append("WHERE p.inv_status = 1 ");
-
-        if (userVid != null && !"Admin".equalsIgnoreCase(getRoleContext(userVid))) { // or handled via servlet
-            // If user has a specific vendor ID restriction and is not global admin
-            sql.append(" AND p.vid = ? ");
-        }
-
-        if (gaNameFilter != null) {
-            sql.append(" AND pd.city = ? ");
-        }
-
-        sql.append(" ORDER BY pd.state ASC, pd.city ASC, g.name ASC, p.pid ASC");
-
-        try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pst = conn.prepareStatement(sql.toString())) {
-
-            int paramIndex = 1;
-            if (userVid != null && gaNameFilter != null && userGid != 0) {
-                // If vendor filter is added
-                // Let's check parameter binding order carefully based on query structure above:
-                // WHERE p.inv_status = 1 [AND p.vid = ?] [AND pd.city = ?]
-            }
-
-            // Simplified robust binder:
-            // Let's rebuild query parameters dynamically:
-            boolean hasVidFilter = (userVid != null);
-            boolean hasGaFilter = (gaNameFilter != null);
-
-            // Re-instantiate statement with exact parameters
-            StringBuilder dynSql = new StringBuilder(sql.toString());
-            // Wait, let's keep it clean: handle vid filter conditionally
-            
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return reportList;
+        return getDailyReport(userGid, userVid, null);
     }
 
     private static String getRoleContext(Integer vid) {
         return "";
     }
 
-    // Overloaded clean version for ReportDAO
     public static List<ReportDTO> getDailyReport(Integer userGid, Integer userVid, String userRole) {
         List<ReportDTO> reportList = new ArrayList<>();
         String gaNameFilter = null;
@@ -193,7 +90,6 @@ public class ReportDAO {
            .append(") r_yday ON p.pid = r_yday.pid ")
            .append("WHERE p.inv_status = 1 ");
 
-        // If user is not Admin, restrict by their Vendor ID (vid)
         boolean restrictVid = !"Admin".equalsIgnoreCase(userRole) && userVid != null;
         if (restrictVid) {
             sql.append(" AND p.vid = ? ");
@@ -232,8 +128,7 @@ public class ReportDAO {
                     row.setGaName(gaName != null ? gaName : "-");
                     row.setPortionId(pid);
 
-                    int totalDataVal = rs.getInt("total_data");
-                    Integer totalData = rs.wasNull() ? null : totalDataVal;
+                    Integer totalData = (rs.getObject("total_data") != null) ? rs.getInt("total_data") : null;
                     row.setTotalData(totalData);
 
                     Date sDate = rs.getDate("start_date");
@@ -342,7 +237,7 @@ public class ReportDAO {
         }
         return counts;
     }
-    
+
 //    public static String getPortionDrilldownDetails(int pid) {
 //        int todayReadings = 0;
 //        int ydayReadings = 0;
@@ -353,15 +248,21 @@ public class ReportDAO {
 //
 //        String query = "SELECT " +
 //                       "    r.userId, " +
+//                       "    u.name AS user_name, " +
+//                       "    d.ga AS gaName, " +
+//                       "    d.pid AS portionId, " +
+//                       "    d.start_date AS scheduleStart, " +
+//                       "    d.end_date AS scheduleEnd, " +
 //                       "    SUM(CASE WHEN DATE(r.reading_date) = CURRENT_DATE() THEN 1 ELSE 0 END) AS today_cnt, " +
 //                       "    SUM(CASE WHEN DATE(r.reading_date) = CURRENT_DATE() - INTERVAL 1 DAY THEN 1 ELSE 0 END) AS yday_cnt, " +
 //                       "    COUNT(r.id) AS total_cnt " +
 //                       "FROM readings r " +
 //                       "JOIN portion_details d ON r.pid = d.pid " +
+//                       "LEFT JOIN user u ON r.userId = u.userId " +
 //                       "WHERE r.pid = ? " +
 //                       "  AND (d.start_date IS NULL OR DATE(r.reading_date) >= d.start_date) " +
 //                       "  AND (d.end_date IS NULL OR DATE(r.reading_date) <= d.end_date) " +
-//                       "GROUP BY r.userId";
+//                       "GROUP BY r.userId, u.name, d.ga, d.pid, d.start_date, d.end_date";
 //
 //        try (Connection conn = DBConnection.getConnection();
 //             PreparedStatement pst = conn.prepareStatement(query)) {
@@ -370,6 +271,12 @@ public class ReportDAO {
 //                boolean first = true;
 //                while (rs.next()) {
 //                    String readerId = rs.getString("userId");
+//                    String userName = rs.getString("user_name");
+//                    String gaName = rs.getString("gaName");
+//                    int portionNo = rs.getInt("portionId");
+//                    String scheduleStart = rs.getString("scheduleStart");
+//                    String scheduleEnd = rs.getString("scheduleEnd");
+//                    
 //                    int tCnt = rs.getInt("today_cnt");
 //                    int yCnt = rs.getInt("yday_cnt");
 //                    int totCnt = rs.getInt("total_cnt");
@@ -383,6 +290,11 @@ public class ReportDAO {
 //                    }
 //                    readersJson.append("{")
 //                               .append("\"userId\":\"").append(readerId != null ? readerId.replace("\"", "\\\"") : "N/A").append("\",")
+//                               .append("\"userName\":\"").append(userName != null ? userName.replace("\"", "\\\"") : "N/A").append("\",")
+//                               .append("\"gaName\":\"").append(gaName != null ? gaName.replace("\"", "\\\"") : "").append("\",")
+//                               .append("\"portionNo\":").append(portionNo).append(",")
+//                               .append("\"scheduleStart\":\"").append(scheduleStart != null ? scheduleStart : "").append("\",")
+//                               .append("\"scheduleEnd\":\"").append(scheduleEnd != null ? scheduleEnd : "").append("\",")
 //                               .append("\"todayCount\":").append(tCnt).append(",")
 //                               .append("\"ydayCount\":").append(yCnt).append(",")
 //                               .append("\"totalCount\":").append(totCnt)
@@ -406,7 +318,6 @@ public class ReportDAO {
 //
 //        return jsonResponse.toString();
 //    }
-    
     public static String getPortionDrilldownDetails(int pid) {
         int todayReadings = 0;
         int ydayReadings = 0;
@@ -416,18 +327,22 @@ public class ReportDAO {
         readersJson.append("[");
 
         String query = "SELECT " +
-                       "    r.userId, " +
+                       "    r.userId AS userId, " +
                        "    u.name AS user_name, " +
+                       "    d.ga AS gaName, " +
+                       "    d.pid AS portionId, " +
+                       "    d.start_date AS scheduleStart, " +
+                       "    d.end_date AS scheduleEnd, " +
                        "    SUM(CASE WHEN DATE(r.reading_date) = CURRENT_DATE() THEN 1 ELSE 0 END) AS today_cnt, " +
                        "    SUM(CASE WHEN DATE(r.reading_date) = CURRENT_DATE() - INTERVAL 1 DAY THEN 1 ELSE 0 END) AS yday_cnt, " +
                        "    COUNT(r.id) AS total_cnt " +
                        "FROM readings r " +
                        "JOIN portion_details d ON r.pid = d.pid " +
-                       "LEFT JOIN user u ON r.userId = u.userID " +
+                       "LEFT JOIN user u ON r.userId = u.userId " +
                        "WHERE r.pid = ? " +
                        "  AND (d.start_date IS NULL OR DATE(r.reading_date) >= d.start_date) " +
                        "  AND (d.end_date IS NULL OR DATE(r.reading_date) <= d.end_date) " +
-                       "GROUP BY r.userId, u.name";
+                       "GROUP BY r.userId, u.name, d.ga, d.pid, d.start_date, d.end_date";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pst = conn.prepareStatement(query)) {
@@ -437,6 +352,11 @@ public class ReportDAO {
                 while (rs.next()) {
                     String readerId = rs.getString("userId");
                     String userName = rs.getString("user_name");
+                    String gaName = rs.getString("gaName");
+                    int portionNo = rs.getInt("portionId");
+                    String scheduleStart = rs.getString("scheduleStart");
+                    String scheduleEnd = rs.getString("scheduleEnd");
+                    
                     int tCnt = rs.getInt("today_cnt");
                     int yCnt = rs.getInt("yday_cnt");
                     int totCnt = rs.getInt("total_cnt");
@@ -451,6 +371,10 @@ public class ReportDAO {
                     readersJson.append("{")
                                .append("\"userId\":\"").append(readerId != null ? readerId.replace("\"", "\\\"") : "N/A").append("\",")
                                .append("\"userName\":\"").append(userName != null ? userName.replace("\"", "\\\"") : "N/A").append("\",")
+                               .append("\"gaName\":\"").append(gaName != null ? gaName.replace("\"", "\\\"") : "").append("\",")
+                               .append("\"portionNo\":").append(portionNo).append(",")
+                               .append("\"scheduleStart\":\"").append(scheduleStart != null ? scheduleStart : "").append("\",")
+                               .append("\"scheduleEnd\":\"").append(scheduleEnd != null ? scheduleEnd : "").append("\",")
                                .append("\"todayCount\":").append(tCnt).append(",")
                                .append("\"ydayCount\":").append(yCnt).append(",")
                                .append("\"totalCount\":").append(totCnt)
@@ -473,5 +397,104 @@ public class ReportDAO {
                     .append("}");
 
         return jsonResponse.toString();
+    }
+
+    public List<ReportDTO> getDailyReportForMeterReader(String userId, String startDate, String endDate) {
+        List<ReportDTO> dailyList = new ArrayList<>();
+        String query = "SELECT DATE(reading_date) as r_date, COUNT(*) as reading_count " +
+                       "FROM readings " +
+                       "WHERE userId = ? AND DATE(reading_date) BETWEEN ? AND LEAST(?, CURDATE()) " +
+                       "GROUP BY DATE(reading_date) ORDER BY r_date ASC";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, userId);
+            pstmt.setString(2, startDate);
+            pstmt.setString(3, endDate);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    ReportDTO dto = new ReportDTO();
+                    String rawDate = rs.getString("r_date");
+                    if (rawDate != null && rawDate.length() >= 10) {
+                        String[] parts = rawDate.split("-"); 
+                        if (parts.length == 3) {
+                            dto.setReadingDate(parts[2] + "-" + parts[1] + "-" + parts[0]);
+                        } else {
+                            dto.setReadingDate(rawDate);
+                        }
+                    } else {
+                        dto.setReadingDate(rawDate);
+                    }
+                    dto.setReadingCount(rs.getInt("reading_count"));
+                    dailyList.add(dto);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return dailyList;
+    }
+    
+//    public List<ReportDTO> getReadingsMapForDate(String userId, String targetDate) {
+//        List<ReportDTO> locationList = new ArrayList<>();
+//        
+//        // Uses STR_TO_DATE to cleanly accept the 'dd-MM-yyyy' parameter format passed from the date link
+//        String query = "SELECT r.lat, r.lon FROM readings r " +
+//                       "JOIN portion_details p ON r.pid = p.pid " +
+//                       "WHERE r.userId = ? " +
+//                       "  AND DATE(r.reading_date) = STR_TO_DATE(?, '%d-%m-%Y') " +
+//                       "  AND (p.start_date IS NULL OR DATE(r.reading_date) >= p.start_date) " +
+//                       "  AND (p.end_date IS NULL OR DATE(r.reading_date) <= p.end_date)";
+//        
+//        try (Connection conn = DBConnection.getConnection();
+//             PreparedStatement pstmt = conn.prepareStatement(query)) {
+//            pstmt.setString(1, userId);
+//            pstmt.setString(2, targetDate);
+//            
+//            try (ResultSet rs = pstmt.executeQuery()) {
+//                while (rs.next()) {
+//                    ReportDTO dto = new ReportDTO();
+//                    dto.setLat(rs.getDouble("lat"));
+//                    dto.setLon(rs.getDouble("lon"));
+//                    locationList.add(dto);
+//                }
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return locationList;
+//    }
+    
+    public List<ReportDTO> getReadingsMapForDate(String userId, String targetDate) {
+        List<ReportDTO> locationList = new ArrayList<>();
+        
+        // Select r.reading_date as well so we can sort and display time on the map
+        String query = "SELECT r.lat, r.lon, r.reading_date FROM readings r " +
+                       "JOIN portion_details p ON r.pid = p.pid " +
+                       "WHERE r.userId = ? " +
+                       "  AND DATE(r.reading_date) = STR_TO_DATE(?, '%d-%m-%Y') " +
+                       "  AND (p.start_date IS NULL OR DATE(r.reading_date) >= p.start_date) " +
+                       "  AND (p.end_date IS NULL OR DATE(r.reading_date) <= p.end_date) " +
+                       "ORDER BY r.reading_date ASC"; // Ensures chronological ordering
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, userId);
+            pstmt.setString(2, targetDate);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    ReportDTO dto = new ReportDTO();
+                    dto.setLat(rs.getDouble("lat"));
+                    dto.setLon(rs.getDouble("lon"));
+                    dto.setReadingDate(rs.getString("reading_date")); // Reusing readingDate to hold the timestamp string
+                    locationList.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return locationList;
     }
 }

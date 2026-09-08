@@ -26,7 +26,13 @@ public class ReportDTO {
     private int yesterdayReading;
     private int yesterdayInv;
 
-   
+    // Added fields for Meter Reader Daily Report
+    private String readingDate;
+    private int readingCount;
+    
+ // Added fields for Maps
+    private double lat;
+    private double lon;
 
     public ReportDTO() {}
 
@@ -92,4 +98,19 @@ public class ReportDTO {
 
     public int getYesterdayInv() { return yesterdayInv; }
     public void setYesterdayInv(int yesterdayInv) { this.yesterdayInv = yesterdayInv; }
+
+    // Getters and Setters for Daily Report fields
+    public String getReadingDate() { return readingDate; }
+    public void setReadingDate(String readingDate) { this.readingDate = readingDate; }
+
+    public int getReadingCount() { return readingCount; }
+    public void setReadingCount(int readingCount) { this.readingCount = readingCount; }
+    
+    
+    // Getters and Setters for Maps fields
+    public double getLat() { return lat; }
+    public void setLat(double lat) { this.lat = lat; }
+
+    public double getLon() { return lon; }
+    public void setLon(double lon) { this.lon = lon; }
 }
