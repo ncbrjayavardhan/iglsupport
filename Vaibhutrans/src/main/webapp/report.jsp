@@ -413,6 +413,9 @@
         <div class="actions-bar d-flex flex-wrap align-items-center justify-content-between mb-2 gap-2">
             <span class="text-muted small fw-semibold" style="font-size: 11px;"><i class="fa fa-download me-1"></i> Quick Export Options</span>
             <div class="d-flex gap-1">
+                <button type="button" class="btn btn-warning btn-sm text-dark fw-bold" onclick="exportTallyHeader()">
+            		<i class="fa fa-file-invoice me-1"></i> Tally Header
+        		</button>
                 <button type="button" class="btn btn-gradient-primary btn-sm" data-bs-toggle="modal" data-bs-target="#customExportModal">
                     <i class="fa fa-sliders"></i> Custom Export
                 </button>
@@ -947,6 +950,48 @@
         const modal = bootstrap.Modal.getInstance(modalEl);
         if (modal) modal.hide();
     }
+    
+    function exportTallyHeader() {
+        fetch('report?action=tallyheader')
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to fetch tally header data.");
+                return response.json();
+            })
+            .then(data => {
+                if (!data || data.length === 0) {
+                    alert("No data found for Tally Header.");
+                    return;
+                }
+
+                // Prepare rows for SheetJS: Headers + Data mapping
+                const headers = ["Benf Account", "Tally Ledger"];
+                const rows = data.map(item => [item.benf_account, item.tallyledger]);
+
+                const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "TallyHeader");
+
+                // Explicitly pull date components safely
+                var now = new Date();
+                var yyyy = now.getFullYear();
+                var mm = String(now.getMonth() + 1).padStart(2, '0');
+                var dd = String(now.getDate()).padStart(2, '0');
+                var hh = String(now.getHours()).padStart(2, '0');
+                var min = String(now.getMinutes()).padStart(2, '0');
+                var ss = String(now.getSeconds()).padStart(2, '0');
+
+                // Build filename safely using standard string concatenation to prevent template literal scoping issues
+                var fileName = "tallyheader_" + yyyy + "-" + mm + "-" + dd + "_" + hh + "-" + min + "-" + ss + ".xlsx";
+
+                XLSX.writeFile(wb, fileName);
+            })
+            .catch(error => {
+                console.error("Error exporting Tally Header:", error);
+                alert("Error generating Tally Header export.");
+            });
+    }
+
+    
 </script>
 </body>
 </html>

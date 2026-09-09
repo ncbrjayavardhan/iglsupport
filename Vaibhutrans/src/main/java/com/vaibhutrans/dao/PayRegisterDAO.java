@@ -383,7 +383,6 @@ public class PayRegisterDAO {
         boolean hasDesignations = (designations != null && designations.length > 0);
         boolean hasDbStatuses = (dbStatuses != null && dbStatuses.length > 0);
 
-        // Keep table records hidden/empty on initial page load until filters/cluster/month/year are set
         if (!hasCluster && !hasMonth && !hasYear && !hasZones && !hasCircles && !hasDivisions && !hasDesignations && !hasDbStatuses) {
             return records;
         }
@@ -400,9 +399,14 @@ public class PayRegisterDAO {
         sql.append("COALESCE(EM.CIRCLE, P.CATEGORY) AS JOINED_CIRCLE, ");
         sql.append("COALESCE(EM.DIV, P.DEPARTMENT) AS JOINED_DIV, ");
         sql.append("COALESCE(EM.DESIGNATION, P.DESIGNATION) AS JOINED_DESIGNATION, ");
-        sql.append("P.DB_STATUS AS JOINED_DB_STATUS ");
+        sql.append("P.DB_STATUS AS JOINED_DB_STATUS, ");
+        sql.append("T.UTR_NO AS JOINED_UTR_NO, ");
+        sql.append("T.TRANSACTION_DATE AS JOINED_TRANSACTION_DATE ");
         sql.append("FROM PAY_REGISTER P ");
         sql.append("LEFT JOIN EMPLOYEE_MASTER EM ON P.CODE = EM.EMP_CODE ");
+        sql.append("LEFT JOIN TRANSACTIONS T ON P.ACCOUNT_NO = T.BENF_ACCOUNT ");
+        sql.append("AND (T.AMOUNT = TO_NUMBER(REGEXP_REPLACE(P.NET_SALARY_ACT, '[^0-9.]', '')) OR T.AMOUNT = TO_NUMBER(REGEXP_REPLACE(P.TOTAL_TCS_ACT, '[^0-9.]', ''))) ");
+        sql.append("AND T.NARRATION LIKE '%' || P.PAY_MONTH || '%' ");
         sql.append("WHERE 1=1 ");
 
         List<Object> parameters = new ArrayList<>();
@@ -526,6 +530,8 @@ public class PayRegisterDAO {
                     }
 
                     record.put("DB_STATUS", rs.getObject("JOINED_DB_STATUS"));
+                    record.put("UTR_NO", rs.getObject("JOINED_UTR_NO"));
+                    record.put("TRANSACTION_DATE", rs.getObject("JOINED_TRANSACTION_DATE"));
                     records.add(record);
                 }
             }
@@ -656,344 +662,6 @@ public class PayRegisterDAO {
         }
 
         if (year != null && !year.trim().isEmpty()) {
-            sql.append("AND P.PAY_YEAR = ? ");
-            parameters.add(Integer.parseInt(year.trim()));
-        }
-
-        try (PreparedStatement ps = con.prepareStatement(sql.toString())) {
-            for (int i = 0; i < parameters.size(); i++) {
-                ps.setObject(i + 1, parameters.get(i));
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    summary.put("SUM_CTC1_ACT", rs.getDouble("SUM_CTC1_ACT"));
-                    summary.put("SUM_CTC_ACT", rs.getDouble("SUM_CTC_ACT"));
-                    summary.put("SUM_TOTAL_TCS_ACT", rs.getDouble("SUM_TOTAL_TCS_ACT"));
-                    summary.put("SUM_NET_AMT_PAYABLE", rs.getDouble("SUM_NET_AMT_PAYABLE"));
-                    summary.put("SUM_TOTAL_BILLED_ACT", rs.getDouble("SUM_TOTAL_BILLED_ACT"));
-                    summary.put("SUM_MANNUAL_BILLED_ACT", rs.getDouble("SUM_MANNUAL_BILLED_ACT"));
-                    summary.put("SUM_PROBE_BILLED_ACT", rs.getDouble("SUM_PROBE_BILLED_ACT"));
-                    summary.put("SUM_AUTO_OCR_ACT", rs.getDouble("SUM_AUTO_OCR_ACT"));
-                    summary.put("SUM_ALLOW_AMT", rs.getDouble("SUM_ALLOW_AMT"));
-                    summary.put("SUM_HOLD_AMT", rs.getDouble("SUM_HOLD_AMT"));
-                    summary.put("SUM_PAID_AMT", rs.getDouble("SUM_PAID_AMT"));
-                }
-            }
-        }
-
-        return summary;
-    }
-
-    /* 1. getRecords using shared Connection (With Initial Load Guard) */
-    public List<Map<String, Object>> getRecords2(
-            Connection con,
-            String cluster,
-            String[] zones,
-            String[] circles,
-            String[] divisions,
-            String[] designations,
-            String[] dbStatuses,
-            String month,
-            String year) throws Exception {
-
-        List<Map<String, Object>> records = new ArrayList<>();
-        
-        boolean hasCluster = (cluster != null && !cluster.trim().isEmpty());
-        boolean hasMonth = (month != null && !month.trim().isEmpty());
-        boolean hasYear = (year != null && !year.trim().isEmpty());
-        boolean hasZones = (zones != null && zones.length > 0);
-        boolean hasCircles = (circles != null && circles.length > 0);
-        boolean hasDivisions = (divisions != null && divisions.length > 0);
-        boolean hasDesignations = (designations != null && designations.length > 0);
-        boolean hasDbStatuses = (dbStatuses != null && dbStatuses.length > 0);
-
-        // Do not load table records on initial page load until filters/cluster/month/year are set
-        if (!hasCluster && !hasMonth && !hasYear && !hasZones && !hasCircles && !hasDivisions && !hasDesignations && !hasDbStatuses) {
-            return records;
-        }
-
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ");
-        sql.append("P.*, ");
-        sql.append("COALESCE(EM.EMP_NAME, P.EMP_NAME) AS JOINED_EMP_NAME, ");
-        sql.append("COALESCE(EM.ACCOUNT_NO, P.ACCOUNT_NO) AS JOINED_ACCOUNT_NO, ");
-        sql.append("COALESCE(EM.BANK_NAME, P.BANK_NAME) AS JOINED_BANK_NAME, ");
-        sql.append("COALESCE(EM.BRANCH_NAME, P.BANK_BRANCH) AS JOINED_BANK_BRANCH, ");
-        sql.append("COALESCE(EM.IFSC, P.IFSC) AS JOINED_IFSC, ");
-        sql.append("COALESCE(EM.ZONE, P.BRANCH) AS JOINED_ZONE, ");
-        sql.append("COALESCE(EM.CIRCLE, P.CATEGORY) AS JOINED_CIRCLE, ");
-        sql.append("COALESCE(EM.DIV, P.DEPARTMENT) AS JOINED_DIV, ");
-        sql.append("COALESCE(EM.DESIGNATION, P.DESIGNATION) AS JOINED_DESIGNATION, ");
-        sql.append("P.DB_STATUS AS JOINED_DB_STATUS ");
-        sql.append("FROM PAY_REGISTER P ");
-        sql.append("LEFT JOIN EMPLOYEE_MASTER EM ON P.CODE = EM.EMP_CODE ");
-        sql.append("WHERE 1=1 ");
-
-        List<Object> parameters = new ArrayList<>();
-
-        if (hasCluster) {
-            sql.append("AND (P.CLUSTER_NAME = ? OR EM.CLU_NAME = ? OR EM.CLU_NAME = ?) ");
-            parameters.add(cluster.trim());
-            parameters.add(cluster.trim());
-            parameters.add("Cluster-" + cluster.trim());
-        }
-
-        if (hasZones) {
-            sql.append("AND (");
-            for (int i = 0; i < zones.length; i++) {
-                if (i > 0) sql.append(" OR ");
-                sql.append("P.BRANCH = ? OR EM.ZONE = ?");
-                parameters.add(zones[i].trim());
-                parameters.add(zones[i].trim());
-            }
-            sql.append(") ");
-        }
-
-        if (hasCircles) {
-            sql.append("AND (");
-            for (int i = 0; i < circles.length; i++) {
-                if (i > 0) sql.append(" OR ");
-                sql.append("P.CATEGORY = ? OR EM.CIRCLE = ?");
-                parameters.add(circles[i].trim());
-                parameters.add(circles[i].trim());
-            }
-            sql.append(") ");
-        }
-
-        if (hasDivisions) {
-            sql.append("AND (");
-            for (int i = 0; i < divisions.length; i++) {
-                if (i > 0) sql.append(" OR ");
-                sql.append("P.DEPARTMENT = ? OR EM.DIV = ?");
-                parameters.add(divisions[i].trim());
-                parameters.add(divisions[i].trim());
-            }
-            sql.append(") ");
-        }
-
-        if (hasDesignations) {
-            sql.append("AND (");
-            for (int i = 0; i < designations.length; i++) {
-                if (i > 0) sql.append(" OR ");
-                sql.append("P.DESIGNATION = ? OR EM.DESIGNATION = ?");
-                parameters.add(designations[i].trim());
-                parameters.add(designations[i].trim());
-            }
-            sql.append(") ");
-        }
-
-        if (hasDbStatuses) {
-            sql.append("AND P.DB_STATUS IN (");
-            for (int i = 0; i < dbStatuses.length; i++) {
-                if (i > 0) sql.append(",");
-                sql.append("?");
-                parameters.add(dbStatuses[i].trim());
-            }
-            sql.append(") ");
-        }
-
-        if (hasMonth) {
-            sql.append("AND P.PAY_MONTH = ? ");
-            parameters.add(month.trim().toUpperCase(Locale.ENGLISH));
-        }
-
-        if (hasYear) {
-            sql.append("AND P.PAY_YEAR = ? ");
-            parameters.add(Integer.parseInt(year.trim()));
-        }
-
-        sql.append("ORDER BY P.ID ASC");
-
-        try (PreparedStatement ps = con.prepareStatement(sql.toString())) {
-            for (int i = 0; i < parameters.size(); i++) {
-                ps.setObject(i + 1, parameters.get(i));
-            }
-
-            try (ResultSet rs = ps.executeQuery()) {
-                ResultSetMetaData meta = rs.getMetaData();
-                int columnCount = meta.getColumnCount();
-
-                while (rs.next()) {
-                    Map<String, Object> record = new LinkedHashMap<>();
-                    
-                    for (int i = 1; i <= columnCount; i++) {
-                        String columnName = meta.getColumnName(i).toUpperCase(Locale.ENGLISH);
-
-                        if (columnName.equals("ID")
-                                || columnName.equals("SOURCE_FILE")
-                                || columnName.equals("LOADED_AT")
-                                || columnName.startsWith("JOINED_")) {
-                            continue;
-                        }
-
-                        if (columnName.equals("EMP_NAME")) {
-                            record.put(columnName, rs.getObject("JOINED_EMP_NAME"));
-                        } else if (columnName.equals("ACCOUNT_NO")) {
-                            record.put(columnName, rs.getObject("JOINED_ACCOUNT_NO"));
-                        } else if (columnName.equals("BANK_NAME")) {
-                            record.put(columnName, rs.getObject("JOINED_BANK_NAME"));
-                        } else if (columnName.equals("BANK_BRANCH")) {
-                            record.put(columnName, rs.getObject("JOINED_BANK_BRANCH"));
-                        } else if (columnName.equals("IFSC")) {
-                            record.put(columnName, rs.getObject("JOINED_IFSC"));
-                        } else if (columnName.equals("BRANCH")) {
-                            record.put(columnName, rs.getObject("JOINED_ZONE"));
-                        } else if (columnName.equals("CATEGORY")) {
-                            record.put(columnName, rs.getObject("JOINED_CIRCLE"));
-                        } else if (columnName.equals("DEPARTMENT")) {
-                            record.put(columnName, rs.getObject("JOINED_DIV"));
-                        } else if (columnName.equals("DESIGNATION")) {
-                            record.put(columnName, rs.getObject("JOINED_DESIGNATION"));
-                        } else {
-                            record.put(columnName, rs.getObject(i));
-                        }
-                    }
-
-                    record.put("DB_STATUS", rs.getObject("JOINED_DB_STATUS"));
-                    records.add(record);
-                }
-            }
-        }
-        return records;
-    }
-
-    public List<Map<String, Object>> getRecords2(
-            Connection con,
-            String cluster,
-            String[] zones,
-            String[] circles,
-            String[] divisions,
-            String[] designations,
-            String month,
-            String year) throws Exception {
-        return getRecords2(con, cluster, zones, circles, divisions, designations, null, month, year);
-    }
-
-    /* 2. getReportSummary using shared Connection (With Initial Load Guard) */
-    public Map<String, Double> getReportSummary2(
-            Connection con,
-            String cluster,
-            String[] zones,
-            String[] circles,
-            String[] divisions,
-            String[] designations,
-            String[] dbStatuses,
-            String month,
-            String year) throws Exception {
-
-        Map<String, Double> summary = new LinkedHashMap<>();
-        summary.put("SUM_CTC1_ACT", 0.0);
-        summary.put("SUM_CTC_ACT", 0.0);
-        summary.put("SUM_TOTAL_TCS_ACT", 0.0);
-        summary.put("SUM_NET_AMT_PAYABLE", 0.0);
-        summary.put("SUM_TOTAL_BILLED_ACT", 0.0);
-        summary.put("SUM_MANNUAL_BILLED_ACT", 0.0);
-        summary.put("SUM_PROBE_BILLED_ACT", 0.0);
-        summary.put("SUM_AUTO_OCR_ACT", 0.0);
-        summary.put("SUM_ALLOW_AMT", 0.0);
-        summary.put("SUM_HOLD_AMT", 0.0);
-        summary.put("SUM_PAID_AMT", 0.0);
-
-        boolean hasCluster = (cluster != null && !cluster.trim().isEmpty());
-        boolean hasMonth = (month != null && !month.trim().isEmpty());
-        boolean hasYear = (year != null && !year.trim().isEmpty());
-        boolean hasZones = (zones != null && zones.length > 0);
-        boolean hasCircles = (circles != null && circles.length > 0);
-        boolean hasDivisions = (divisions != null && divisions.length > 0);
-        boolean hasDesignations = (designations != null && designations.length > 0);
-        boolean hasDbStatuses = (dbStatuses != null && dbStatuses.length > 0);
-
-        if (!hasCluster && !hasMonth && !hasYear && !hasZones && !hasCircles && !hasDivisions && !hasDesignations && !hasDbStatuses) {
-            return summary;
-        }
-
-        StringBuilder sql = new StringBuilder();
-        sql.append("SELECT ");
-        sql.append("SUM(TO_NUMBER(REGEXP_REPLACE(P.CTC1_ACT, '[^0-9.]', ''))) AS SUM_CTC1_ACT, ");
-        sql.append("SUM(TO_NUMBER(REGEXP_REPLACE(P.CTC_ACT, '[^0-9.]', ''))) AS SUM_CTC_ACT, ");
-        sql.append("SUM(TO_NUMBER(REGEXP_REPLACE(P.TOTAL_TCS_ACT, '[^0-9.]', ''))) AS SUM_TOTAL_TCS_ACT, ");
-        sql.append("SUM(TO_NUMBER(REGEXP_REPLACE(P.NET_AMT_PAYABLE, '[^0-9.]', ''))) AS SUM_NET_AMT_PAYABLE, ");
-        sql.append("SUM(TO_NUMBER(REGEXP_REPLACE(P.TOTAL_BILLED_ACT, '[^0-9.]', ''))) AS SUM_TOTAL_BILLED_ACT, ");
-        sql.append("SUM(TO_NUMBER(REGEXP_REPLACE(P.MANNUAL_BILLED_ACT, '[^0-9.]', ''))) AS SUM_MANNUAL_BILLED_ACT, ");
-        sql.append("SUM(TO_NUMBER(REGEXP_REPLACE(P.PROBE_BILLED_ACT, '[^0-9.]', ''))) AS SUM_PROBE_BILLED_ACT, ");
-        sql.append("SUM(TO_NUMBER(REGEXP_REPLACE(P.AUTO_OCR_ACT, '[^0-9.]', ''))) AS SUM_AUTO_OCR_ACT, ");
-        sql.append("SUM(CASE WHEN UPPER(TRIM(P.DB_STATUS)) = 'ALLOW' THEN (TO_NUMBER(REGEXP_REPLACE(COALESCE(P.TOTAL_TCS_ACT, '0'), '[^0-9.]', '')) + TO_NUMBER(REGEXP_REPLACE(COALESCE(P.NET_AMT_PAYABLE, '0'), '[^0-9.]', ''))) ELSE 0 END) AS SUM_ALLOW_AMT, ");
-        sql.append("SUM(CASE WHEN UPPER(TRIM(P.DB_STATUS)) IN ('HOLD', 'LEFT') THEN (TO_NUMBER(REGEXP_REPLACE(COALESCE(P.TOTAL_TCS_ACT, '0'), '[^0-9.]', '')) + TO_NUMBER(REGEXP_REPLACE(COALESCE(P.NET_AMT_PAYABLE, '0'), '[^0-9.]', ''))) ELSE 0 END) AS SUM_HOLD_AMT, ");
-        sql.append("SUM(CASE WHEN UPPER(TRIM(P.DB_STATUS)) = 'PAID' THEN (TO_NUMBER(REGEXP_REPLACE(COALESCE(P.TOTAL_TCS_ACT, '0'), '[^0-9.]', '')) + TO_NUMBER(REGEXP_REPLACE(COALESCE(P.NET_AMT_PAYABLE, '0'), '[^0-9.]', ''))) ELSE 0 END) AS SUM_PAID_AMT ");
-        sql.append("FROM PAY_REGISTER P ");
-        sql.append("LEFT JOIN EMPLOYEE_MASTER EM ON P.CODE = EM.EMP_CODE ");
-        sql.append("WHERE 1=1 ");
-
-        List<Object> parameters = new ArrayList<>();
-
-        if (hasCluster) {
-            sql.append("AND (P.CLUSTER_NAME = ? OR EM.CLU_NAME = ? OR EM.CLU_NAME = ?) ");
-            parameters.add(cluster.trim());
-            parameters.add(cluster.trim());
-            parameters.add("Cluster-" + cluster.trim());
-        }
-
-        if (hasZones) {
-            sql.append("AND (");
-            for (int i = 0; i < zones.length; i++) {
-                if (i > 0) sql.append(" OR ");
-                sql.append("P.BRANCH = ? OR EM.ZONE = ?");
-                parameters.add(zones[i].trim());
-                parameters.add(zones[i].trim());
-            }
-            sql.append(") ");
-        }
-
-        if (hasCircles) {
-            sql.append("AND (");
-            for (int i = 0; i < circles.length; i++) {
-                if (i > 0) sql.append(" OR ");
-                sql.append("P.CATEGORY = ? OR EM.CIRCLE = ?");
-                parameters.add(circles[i].trim());
-                parameters.add(circles[i].trim());
-            }
-            sql.append(") ");
-        }
-
-        if (hasDivisions) {
-            sql.append("AND (");
-            for (int i = 0; i < divisions.length; i++) {
-                if (i > 0) sql.append(" OR ");
-                sql.append("P.DEPARTMENT = ? OR EM.DIV = ?");
-                parameters.add(divisions[i].trim());
-                parameters.add(divisions[i].trim());
-            }
-            sql.append(") ");
-        }
-
-        if (hasDesignations) {
-            sql.append("AND (");
-            for (int i = 0; i < designations.length; i++) {
-                if (i > 0) sql.append(" OR ");
-                sql.append("P.DESIGNATION = ? OR EM.DESIGNATION = ?");
-                parameters.add(designations[i].trim());
-                parameters.add(designations[i].trim());
-            }
-            sql.append(") ");
-        }
-
-        if (hasDbStatuses) {
-            sql.append("AND P.DB_STATUS IN (");
-            for (int i = 0; i < dbStatuses.length; i++) {
-                if (i > 0) sql.append(",");
-                sql.append("?");
-                parameters.add(dbStatuses[i].trim());
-            }
-            sql.append(") ");
-        }
-
-        if (hasMonth) {
-            sql.append("AND P.PAY_MONTH = ? ");
-            parameters.add(month.trim().toUpperCase(Locale.ENGLISH));
-        }
-
-        if (hasYear) {
             sql.append("AND P.PAY_YEAR = ? ");
             parameters.add(Integer.parseInt(year.trim()));
         }

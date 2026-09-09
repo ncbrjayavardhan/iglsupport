@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +39,10 @@ public class PayRegisterServlet extends HttpServlet {
         String action = request.getParameter("action");
         if ("getMasterData".equals(action)) {
             fetchMasterDataJson(request, response);
-        } else {
+        } else if ("getTransactionDetails".equals(action)) {
+            fetchTransactionDetailsJson(request, response);
+        } 
+        else {
             loadRecords(request, response);
         }
     }
@@ -56,7 +61,6 @@ public class PayRegisterServlet extends HttpServlet {
             loadRecords(request, response);
         }
     }
-    
     
     private void updatePaymentStatus(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -235,8 +239,6 @@ public class PayRegisterServlet extends HttpServlet {
             List<String> circleList = dao.getDistinctEmployeeMasterOptions(con, "CIRCLE", cluster, zones, null, null);
             List<String> divisionList = dao.getDistinctEmployeeMasterOptions(con, "DIV", cluster, zones, circles, null);
             List<String> designationList = dao.getDistinctEmployeeMasterOptions(con, "DESIGNATION", cluster, zones, circles, divisions);
-            
-//            List<String> dbStatusList = dao.getDistinctEmployeeMasterOptions(con, "DB_STATUS", cluster, zones, circles, divisions);
             List<String> dbStatusList = dao.getDistinctPayRegisterDbStatuses(con, cluster, month, year);
 
             List<Map<String, String>> companyBankList = dao.getCompanyBankDetails(con);
@@ -278,7 +280,6 @@ public class PayRegisterServlet extends HttpServlet {
         return valid.isEmpty() ? null : valid.toArray(new String[0]);
     }
     
-    
     private void handleRowStatusUpdate(HttpServletRequest request, HttpServletResponse response) 
             throws IOException {
         response.setContentType("application/json;charset=UTF-8");
@@ -308,6 +309,47 @@ public class PayRegisterServlet extends HttpServlet {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             out.print("{\"success\":false,\"message\":\"" + e.getMessage() + "\"}");
+        }
+    }
+    
+    private void fetchTransactionDetailsJson(HttpServletRequest request, HttpServletResponse response) 
+            throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        PrintWriter out = response.getWriter();
+
+        String empCode = request.getParameter("empCode");
+        String payMonth = request.getParameter("payMonth");
+        String payYear = request.getParameter("payYear");
+
+        try (Connection con = DBConnection.getConnection()) {
+            // Universal Oracle-compatible query using a subquery and ROWNUM
+            String sql = "SELECT utr_no, tx_date FROM (" +
+                         "  SELECT t.utr_no, TO_CHAR(t.transaction_date, 'YYYY-MM-DD') AS tx_date " +
+                         "  FROM pay_register p " +
+                         "  JOIN transactions t ON TRIM(p.account_no) = TRIM(t.benf_account) " +
+                         "  WHERE p.code = ? AND p.pay_month = ? AND p.pay_year = ? " +
+                         "    AND t.utr_no IS NOT NULL " +
+                         "  ORDER BY t.transaction_date DESC" +
+                         ") WHERE ROWNUM = 1";
+
+            try (PreparedStatement ps = con.prepareStatement(sql)) {
+                ps.setString(1, empCode);
+                ps.setString(2, payMonth);
+                ps.setInt(3, Integer.parseInt(payYear != null && !payYear.trim().isEmpty() ? payYear : "2026"));
+                
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        String utr = rs.getString("utr_no");
+                        String date = rs.getString("tx_date");
+                        out.print("{\"utr_no\":\"" + (utr != null ? utr : "-") + "\", \"transaction_date\":\"" + (date != null ? date : "-") + "\"}");
+                    } else {
+                        out.print("{\"utr_no\":\"-\", \"transaction_date\":\"-\"}");
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            out.print("{\"utr_no\":\"-\", \"transaction_date\":\"-\"}");
         }
     }
 }

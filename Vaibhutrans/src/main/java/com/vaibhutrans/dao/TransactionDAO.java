@@ -309,4 +309,23 @@ public class TransactionDAO {
         }
         return null;
     }
+    
+ // Add inside TransactionDAO.java
+    public List<Map<String, String>> getTallyHeaderData() throws SQLException {
+        List<Map<String, String>> list = new ArrayList<>();
+        String sql = "SELECT DISTINCT benf_account, tallyledger FROM transactions ORDER BY benf_account ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, String> row = new java.util.LinkedHashMap<>();
+                row.put("benf_account", rs.getString("benf_account") != null ? rs.getString("benf_account").trim() : "");
+                row.put("tallyledger", rs.getString("tallyledger") != null ? rs.getString("tallyledger").trim() : "");
+                list.add(row);
+            }
+        }
+        return list;
+    }
 }
