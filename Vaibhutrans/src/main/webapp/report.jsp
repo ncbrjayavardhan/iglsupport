@@ -964,8 +964,8 @@
                 }
 
                 // Prepare rows for SheetJS: Headers + Data mapping
-                const headers = ["Benf Account", "Tally Ledger"];
-                const rows = data.map(item => [item.benf_account, item.tallyledger]);
+                const headers = ["Benf Account", "Tally Ledger","Project"];
+                const rows = data.map(item => [item.benf_account, item.tallyledger, item.project]);
 
                 const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
                 const wb = XLSX.utils.book_new();
