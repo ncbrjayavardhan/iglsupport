@@ -90,7 +90,10 @@ public class ReportDAO {
            .append(") r_yday ON p.pid = r_yday.pid ")
            .append("WHERE p.inv_status = 1 ");
 
-        boolean restrictVid = !"Admin".equalsIgnoreCase(userRole) && userVid != null;
+//        boolean restrictVid = !"Admin".equalsIgnoreCase(userRole) && userVid != null;
+        boolean restrictVid = !"Admin".equalsIgnoreCase(userRole) 
+                && !"IGL".equalsIgnoreCase(userRole) 
+                && userVid != null;
         if (restrictVid) {
             sql.append(" AND p.vid = ? ");
         }
